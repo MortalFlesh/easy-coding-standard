@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,12 +11,14 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\DocBlock;
 
 use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\NamespaceAnalysis;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\NamespaceUseAnalysis;
 use PhpCsFixer\Utils;
+
 /**
  * @internal
  */
@@ -29,288 +32,450 @@ final class TypeExpression
     public const REGEX_TYPES = '
     (?<types> # several types separated by `|` or `&`
         (?<type> # single type
-            (?<nullable>\\??)
+            (?<nullable>\??)
             (?:
                 (?<object_like_array>
-                    (?<object_like_array_start>array\\h*\\{)
+                    (?<object_like_array_start>array\h*\{)
                         (?<object_like_array_keys>
                             (?<object_like_array_key>
-                                \\h*[^?:\\h]+\\h*\\??\\h*:\\h*(?&types)
+                                \h*[^?:\h]+\h*\??\h*:\h*(?&types)
                             )
-                            (?:\\h*,(?&object_like_array_key))*
+                            (?:\h*,(?&object_like_array_key))*
                         )
-                    \\h*\\}
+                    \h*\}
                 )
                 |
                 (?<callable> # callable syntax, e.g. `callable(string): bool`
-                    (?<callable_start>(?:callable|Closure)\\h*\\(\\h*)
+                    (?<callable_start>(?:callable|Closure)\h*\(\h*)
                         (?<callable_arguments>
                             (?&types)
                             (?:
-                                \\h*,\\h*
+                                \h*,\h*
                                 (?&types)
                             )*
                         )?
-                    \\h*\\)
+                    \h*\)
                     (?:
-                        \\h*\\:\\h*
+                        \h*\:\h*
                         (?<callable_return>(?&types))
                     )?
                 )
                 |
-                (?<generic> # generic syntax, e.g.: `array<int, \\Foo\\Bar>`
+                (?<generic> # generic syntax, e.g.: `array<int, \Foo\Bar>`
                     (?<generic_start>
                         (?&name)+
-                        \\h*<\\h*
+                        \h*<\h*
                     )
                         (?<generic_types>
                             (?&types)
                             (?:
-                                \\h*,\\h*
+                                \h*,\h*
                                 (?&types)
                             )*
                         )
-                    \\h*>
+                    \h*>
                 )
                 |
                 (?<class_constant> # class constants with optional wildcard, e.g.: `Foo::*`, `Foo::CONST_A`, `FOO::CONST_*`
-                    (?&name)::(\\*|\\w+\\*?)
+                    (?&name)::(\*|\w+\*?)
                 )
                 |
                 (?<array> # array expression, e.g.: `string[]`, `string[][]`
-                    (?&name)(\\[\\])+
+                    (?&name)(\[\])+
                 )
                 |
                 (?<constant> # single constant value (case insensitive), e.g.: 1, `\'a\'`
                     (?i)
                     null | true | false
-                    | [\\d.]+
+                    | [\d.]+
                     | \'[^\']+?\' | "[^"]+?"
                     | [@$]?(?:this | self | static)
                     (?-i)
                 )
                 |
-                (?<name> # single type, e.g.: `null`, `int`, `\\Foo\\Bar`
-                    [\\\\\\w-]++
+                (?<name> # single type, e.g.: `null`, `int`, `\Foo\Bar`
+                    [\\\\\w-]++
                 )
             )
         )
         (?:
-            \\h*(?<glue>[|&])\\h*
+            \h*(?<glue>[|&])\h*
             (?&type)
         )*
     )
     ';
+
     /**
      * @var string
      */
     private $value;
-    /**
-     * @var bool
-     */
-    private $isUnionType = \false;
+
+    private bool $isUnionType = false;
+
     /**
      * @var list<array{start_index: int, expression: self}>
      */
-    private $innerTypeExpressions = [];
-    /**
-     * @var string
-     */
-    private $typesGlue = '|';
+    private array $innerTypeExpressions = [];
+
+    private string $typesGlue = '|';
+
     /**
      * @var null|NamespaceAnalysis
      */
     private $namespace;
+
     /**
      * @var NamespaceUseAnalysis[]
      */
     private $namespaceUses;
+
     /**
      * @param NamespaceUseAnalysis[] $namespaceUses
      */
-    public function __construct(string $value, ?\PhpCsFixer\Tokenizer\Analyzer\Analysis\NamespaceAnalysis $namespace, array $namespaceUses)
+    public function __construct(string $value, ?NamespaceAnalysis $namespace, array $namespaceUses)
     {
         $this->value = $value;
         $this->namespace = $namespace;
         $this->namespaceUses = $namespaceUses;
+
         $this->parse();
     }
-    public function toString() : string
+
+    public function isUnionType(): bool
+    {
+        return $this->isUnionType && '|' === $this->getTypesGlue();
+    }
+
+    public function toString(): string
     {
         return $this->value;
     }
+
     /**
      * @return string[]
      */
-    public function getTypes() : array
+    public function getTypes(): array
     {
         if ($this->isUnionType) {
-            return \array_map(static function (array $type) {
-                return $type['expression']->toString();
-            }, $this->innerTypeExpressions);
+            return array_map(
+                static function (array $type) { return $type['expression']->toString(); },
+                $this->innerTypeExpressions
+            );
         }
+
         return [$this->value];
     }
+
     /**
      * @param callable(self $a, self $b): int $compareCallback
      */
-    public function sortTypes(callable $compareCallback) : void
+    public function sortTypes(callable $compareCallback): void
     {
-        foreach (\array_reverse($this->innerTypeExpressions) as ['start_index' => $startIndex, 'expression' => $inner]) {
+        foreach (array_reverse($this->innerTypeExpressions) as [
+            'start_index' => $startIndex,
+            'expression' => $inner,
+        ]) {
             $initialValueLength = \strlen($inner->toString());
+
             $inner->sortTypes($compareCallback);
-            $this->value = \substr_replace($this->value, $inner->toString(), $startIndex, $initialValueLength);
+
+            $this->value = substr_replace(
+                $this->value,
+                $inner->toString(),
+                $startIndex,
+                $initialValueLength
+            );
         }
+
         if ($this->isUnionType) {
-            $this->innerTypeExpressions = \PhpCsFixer\Utils::stableSort($this->innerTypeExpressions, static function (array $type) : self {
-                return $type['expression'];
-            }, $compareCallback);
-            $this->value = \implode($this->getTypesGlue(), $this->getTypes());
+            $this->innerTypeExpressions = Utils::stableSort(
+                $this->innerTypeExpressions,
+                static function (array $type): self { return $type['expression']; },
+                $compareCallback
+            );
+
+            $this->value = implode($this->getTypesGlue(), $this->getTypes());
         }
     }
-    public function getTypesGlue() : string
+
+    public function getTypesGlue(): string
     {
         return $this->typesGlue;
     }
-    public function getCommonType() : ?string
+
+    public function getCommonType(): ?string
     {
         $aliases = $this->getAliases();
+
         $mainType = null;
+
         foreach ($this->getTypes() as $type) {
             if ('null' === $type) {
                 continue;
             }
+
             if (isset($aliases[$type])) {
                 $type = $aliases[$type];
-            } elseif (1 === \PhpCsFixer\Preg::match('/\\[\\]$/', $type)) {
+            } elseif (1 === Preg::match('/\[\]$/', $type)) {
                 $type = 'array';
-            } elseif (1 === \PhpCsFixer\Preg::match('/^(.+?)</', $type, $matches)) {
+            } elseif (1 === Preg::match('/^(.+?)</', $type, $matches)) {
                 $type = $matches[1];
+            } elseif (str_starts_with($type, '?')) {
+                $type = substr($type, 1);
             }
+
             if (null === $mainType || $type === $mainType) {
                 $mainType = $type;
+
                 continue;
             }
+
             $mainType = $this->getParentType($type, $mainType);
+
             if (null === $mainType) {
                 return null;
             }
         }
+
         return $mainType;
     }
-    public function allowsNull() : bool
+
+    public function allowsNull(): bool
     {
         foreach ($this->getTypes() as $type) {
-            if (\in_array($type, ['null', 'mixed'], \true)) {
-                return \true;
+            if (str_starts_with($type, '?')) {
+                return true;
+            }
+            if (\in_array($type, ['null', 'mixed'], true)) {
+                return true;
             }
         }
-        return \false;
+
+        return false;
     }
-    private function parse() : void
+
+    private function parse(): void
     {
         $value = $this->value;
-        \PhpCsFixer\Preg::match('{^' . self::REGEX_TYPES . '$}x', $value, $matches);
+
+        Preg::match(
+            '{^'.self::REGEX_TYPES.'$}x',
+            $value,
+            $matches
+        );
+
         if ([] === $matches) {
             return;
         }
+
         $this->typesGlue = $matches['glue'] ?? $this->typesGlue;
+
         $index = '' !== $matches['nullable'] ? 1 : 0;
+
         if ($matches['type'] !== $matches['types']) {
-            $this->isUnionType = \true;
-            while (\true) {
+            $this->isUnionType = true;
+
+            while (true) {
                 $innerType = $matches['type'];
-                $newValue = \PhpCsFixer\Preg::replace('/^' . \preg_quote($innerType, '/') . '(\\h*[|&]\\h*)?/', '', $value);
-                $this->innerTypeExpressions[] = ['start_index' => $index, 'expression' => $this->inner($innerType)];
+
+                $newValue = Preg::replace(
+                    '/^'.preg_quote($innerType, '/').'(\h*[|&]\h*)?/',
+                    '',
+                    $value
+                );
+
+                $this->innerTypeExpressions[] = [
+                    'start_index' => $index,
+                    'expression' => $this->inner($innerType),
+                ];
+
                 if ('' === $newValue) {
                     return;
                 }
+
                 $index += \strlen($value) - \strlen($newValue);
                 $value = $newValue;
-                \PhpCsFixer\Preg::match('{^' . self::REGEX_TYPES . '$}x', $value, $matches);
+
+                Preg::match(
+                    '{^'.self::REGEX_TYPES.'$}x',
+                    $value,
+                    $matches
+                );
             }
         }
+
         if ('' !== ($matches['generic'] ?? '')) {
-            $this->parseCommaSeparatedInnerTypes($index + \strlen($matches['generic_start']), $matches['generic_types']);
+            $this->parseCommaSeparatedInnerTypes(
+                $index + \strlen($matches['generic_start']),
+                $matches['generic_types']
+            );
+
             return;
         }
+
         if ('' !== ($matches['callable'] ?? '')) {
-            $this->parseCommaSeparatedInnerTypes($index + \strlen($matches['callable_start']), $matches['callable_arguments'] ?? '');
+            $this->parseCommaSeparatedInnerTypes(
+                $index + \strlen($matches['callable_start']),
+                $matches['callable_arguments'] ?? ''
+            );
+
             $return = $matches['callable_return'] ?? null;
             if (null !== $return) {
-                $this->innerTypeExpressions[] = ['start_index' => \strlen($this->value) - \strlen($matches['callable_return']), 'expression' => $this->inner($matches['callable_return'])];
+                $this->innerTypeExpressions[] = [
+                    'start_index' => \strlen($this->value) - \strlen($matches['callable_return']),
+                    'expression' => $this->inner($matches['callable_return']),
+                ];
             }
+
             return;
         }
+
         if ('' !== ($matches['object_like_array'] ?? '')) {
-            $this->parseObjectLikeArrayKeys($index + \strlen($matches['object_like_array_start']), $matches['object_like_array_keys']);
+            $this->parseObjectLikeArrayKeys(
+                $index + \strlen($matches['object_like_array_start']),
+                $matches['object_like_array_keys']
+            );
         }
     }
-    private function parseCommaSeparatedInnerTypes(int $startIndex, string $value) : void
+
+    private function parseCommaSeparatedInnerTypes(int $startIndex, string $value): void
     {
         while ('' !== $value) {
-            \PhpCsFixer\Preg::match('{^' . self::REGEX_TYPES . '\\h*(?:,|$)}x', $value, $matches);
-            $this->innerTypeExpressions[] = ['start_index' => $startIndex, 'expression' => $this->inner($matches['types'])];
-            $newValue = \PhpCsFixer\Preg::replace('/^' . \preg_quote($matches['types'], '/') . '(\\h*\\,\\h*)?/', '', $value);
+            Preg::match(
+                '{^'.self::REGEX_TYPES.'\h*(?:,|$)}x',
+                $value,
+                $matches
+            );
+
+            $this->innerTypeExpressions[] = [
+                'start_index' => $startIndex,
+                'expression' => $this->inner($matches['types']),
+            ];
+
+            $newValue = Preg::replace(
+                '/^'.preg_quote($matches['types'], '/').'(\h*\,\h*)?/',
+                '',
+                $value
+            );
+
             $startIndex += \strlen($value) - \strlen($newValue);
             $value = $newValue;
         }
     }
-    private function parseObjectLikeArrayKeys(int $startIndex, string $value) : void
+
+    private function parseObjectLikeArrayKeys(int $startIndex, string $value): void
     {
         while ('' !== $value) {
-            \PhpCsFixer\Preg::match('{(?<_start>^.+?:\\h*)' . self::REGEX_TYPES . '\\h*(?:,|$)}x', $value, $matches);
-            $this->innerTypeExpressions[] = ['start_index' => $startIndex + \strlen($matches['_start']), 'expression' => $this->inner($matches['types'])];
-            $newValue = \PhpCsFixer\Preg::replace('/^.+?:\\h*' . \preg_quote($matches['types'], '/') . '(\\h*\\,\\h*)?/', '', $value);
+            Preg::match(
+                '{(?<_start>^.+?:\h*)'.self::REGEX_TYPES.'\h*(?:,|$)}x',
+                $value,
+                $matches
+            );
+
+            $this->innerTypeExpressions[] = [
+                'start_index' => $startIndex + \strlen($matches['_start']),
+                'expression' => $this->inner($matches['types']),
+            ];
+
+            $newValue = Preg::replace(
+                '/^.+?:\h*'.preg_quote($matches['types'], '/').'(\h*\,\h*)?/',
+                '',
+                $value
+            );
+
             $startIndex += \strlen($value) - \strlen($newValue);
             $value = $newValue;
         }
     }
-    private function inner(string $value) : self
+
+    private function inner(string $value): self
     {
         return new self($value, $this->namespace, $this->namespaceUses);
     }
-    private function getParentType(string $type1, string $type2) : ?string
+
+    private function getParentType(string $type1, string $type2): ?string
     {
-        $types = [$this->normalize($type1), $this->normalize($type2)];
-        \natcasesort($types);
-        $types = \implode('|', $types);
-        $parents = ['array|Traversable' => 'iterable', 'array|iterable' => 'iterable', 'iterable|Traversable' => 'iterable', 'self|static' => 'self'];
+        $types = [
+            $this->normalize($type1),
+            $this->normalize($type2),
+        ];
+        natcasesort($types);
+        $types = implode('|', $types);
+
+        $parents = [
+            'array|Traversable' => 'iterable',
+            'array|iterable' => 'iterable',
+            'iterable|Traversable' => 'iterable',
+            'self|static' => 'self',
+        ];
+
         return $parents[$types] ?? null;
     }
-    private function normalize(string $type) : string
+
+    private function normalize(string $type): string
     {
         $aliases = $this->getAliases();
+
         if (isset($aliases[$type])) {
             return $aliases[$type];
         }
-        if (\in_array($type, ['array', 'bool', 'callable', 'float', 'int', 'iterable', 'mixed', 'never', 'null', 'object', 'resource', 'string', 'void'], \true)) {
+
+        if (\in_array($type, [
+            'array',
+            'bool',
+            'callable',
+            'float',
+            'int',
+            'iterable',
+            'mixed',
+            'never',
+            'null',
+            'object',
+            'resource',
+            'string',
+            'void',
+        ], true)) {
             return $type;
         }
-        if (1 === \PhpCsFixer\Preg::match('/\\[\\]$/', $type)) {
+
+        if (1 === Preg::match('/\[\]$/', $type)) {
             return 'array';
         }
-        if (1 === \PhpCsFixer\Preg::match('/^(.+?)</', $type, $matches)) {
+
+        if (1 === Preg::match('/^(.+?)</', $type, $matches)) {
             return $matches[1];
         }
-        if (\strncmp($type, '\\', \strlen('\\')) === 0) {
-            return \substr($type, 1);
+
+        if (str_starts_with($type, '\\')) {
+            return substr($type, 1);
         }
+
         foreach ($this->namespaceUses as $namespaceUse) {
             if ($namespaceUse->getShortName() === $type) {
                 return $namespaceUse->getFullName();
             }
         }
+
         if (null === $this->namespace || $this->namespace->isGlobalNamespace()) {
             return $type;
         }
+
         return "{$this->namespace->getFullName()}\\{$type}";
     }
+
     /**
      * @return array<string,string>
      */
-    private function getAliases() : array
+    private function getAliases(): array
     {
-        return ['boolean' => 'bool', 'callback' => 'callable', 'double' => 'float', 'false' => 'bool', 'integer' => 'int', 'real' => 'float', 'true' => 'bool'];
+        return [
+            'boolean' => 'bool',
+            'callback' => 'callable',
+            'double' => 'float',
+            'false' => 'bool',
+            'integer' => 'int',
+            'real' => 'float',
+            'true' => 'bool',
+        ];
     }
 }

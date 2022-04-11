@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,39 +11,47 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Console\Report\ListSetsReport;
 
 use PhpCsFixer\RuleSet\RuleSetDescriptionInterface;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
  * @internal
  */
-final class TextReporter implements \PhpCsFixer\Console\Report\ListSetsReport\ReporterInterface
+final class TextReporter implements ReporterInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function getFormat() : string
+    public function getFormat(): string
     {
         return 'txt';
     }
+
     /**
      * {@inheritdoc}
      */
-    public function generate(\PhpCsFixer\Console\Report\ListSetsReport\ReportSummary $reportSummary) : string
+    public function generate(ReportSummary $reportSummary): string
     {
         $sets = $reportSummary->getSets();
-        \usort($sets, static function (\PhpCsFixer\RuleSet\RuleSetDescriptionInterface $a, \PhpCsFixer\RuleSet\RuleSetDescriptionInterface $b) : int {
-            return \strcmp($a->getName(), $b->getName());
+
+        usort($sets, static function (RuleSetDescriptionInterface $a, RuleSetDescriptionInterface $b): int {
+            return strcmp($a->getName(), $b->getName());
         });
+
         $output = '';
+
         foreach ($sets as $i => $set) {
-            $output .= \sprintf('%2d) %s', $i + 1, $set->getName()) . \PHP_EOL . '      ' . $set->getDescription() . \PHP_EOL;
+            $output .= sprintf('%2d) %s', $i + 1, $set->getName()).PHP_EOL.'      '.$set->getDescription().PHP_EOL;
+
             if ($set->isRisky()) {
-                $output .= '      Set contains risky rules.' . \PHP_EOL;
+                $output .= '      Set contains risky rules.'.PHP_EOL;
             }
         }
+
         return $output;
     }
 }

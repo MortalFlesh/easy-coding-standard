@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\Whitespace;
 
 use PhpCsFixer\AbstractFixer;
@@ -25,43 +27,75 @@ use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  * @author Andreas Möller <am@localheinz.com>
  */
-final class BlankLineBeforeStatementFixer extends \PhpCsFixer\AbstractFixer implements \PhpCsFixer\Fixer\ConfigurableFixerInterface, \PhpCsFixer\Fixer\WhitespacesAwareFixerInterface
+final class BlankLineBeforeStatementFixer extends AbstractFixer implements ConfigurableFixerInterface, WhitespacesAwareFixerInterface
 {
-    /**
-     * @var mixed[]
-     */
-    private static $tokenMap = ['break' => \T_BREAK, 'case' => \T_CASE, 'continue' => \T_CONTINUE, 'declare' => \T_DECLARE, 'default' => \T_DEFAULT, 'phpdoc' => \T_DOC_COMMENT, 'do' => \T_DO, 'exit' => \T_EXIT, 'for' => \T_FOR, 'foreach' => \T_FOREACH, 'goto' => \T_GOTO, 'if' => \T_IF, 'include' => \T_INCLUDE, 'include_once' => \T_INCLUDE_ONCE, 'require' => \T_REQUIRE, 'require_once' => \T_REQUIRE_ONCE, 'return' => \T_RETURN, 'switch' => \T_SWITCH, 'throw' => \T_THROW, 'try' => \T_TRY, 'while' => \T_WHILE, 'yield' => \T_YIELD, 'yield_from' => \T_YIELD_FROM];
-    /**
-     * @var mixed[]
-     */
-    private $fixTokenMap = [];
+    private static array $tokenMap = [
+        'break' => T_BREAK,
+        'case' => T_CASE,
+        'continue' => T_CONTINUE,
+        'declare' => T_DECLARE,
+        'default' => T_DEFAULT,
+        'phpdoc' => T_DOC_COMMENT,
+        'do' => T_DO,
+        'exit' => T_EXIT,
+        'for' => T_FOR,
+        'foreach' => T_FOREACH,
+        'goto' => T_GOTO,
+        'if' => T_IF,
+        'include' => T_INCLUDE,
+        'include_once' => T_INCLUDE_ONCE,
+        'require' => T_REQUIRE,
+        'require_once' => T_REQUIRE_ONCE,
+        'return' => T_RETURN,
+        'switch' => T_SWITCH,
+        'throw' => T_THROW,
+        'try' => T_TRY,
+        'while' => T_WHILE,
+        'yield' => T_YIELD,
+        'yield_from' => T_YIELD_FROM,
+    ];
+
+    private array $fixTokenMap = [];
+
     /**
      * {@inheritdoc}
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         parent::configure($configuration);
+
         $this->fixTokenMap = [];
+
         foreach ($this->configuration['statements'] as $key) {
             $this->fixTokenMap[$key] = self::$tokenMap[$key];
         }
-        $this->fixTokenMap = \array_values($this->fixTokenMap);
+
+        $this->fixTokenMap = array_values($this->fixTokenMap);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('An empty line feed must precede any configured statement.', [new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+        return new FixerDefinition(
+            'An empty line feed must precede any configured statement.',
+            [
+                new CodeSample(
+                    '<?php
 function A() {
     echo 1;
     return 1;
 }
-'), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+'
+                ),
+                new CodeSample(
+                    '<?php
 switch ($foo) {
     case 42:
         $bar->process();
@@ -69,26 +103,50 @@ switch ($foo) {
     case 44:
         break;
 }
-', ['statements' => ['break']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['break'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 foreach ($foo as $bar) {
     if ($bar->isTired()) {
         $bar->sleep();
         continue;
     }
 }
-', ['statements' => ['continue']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['continue'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 $i = 0;
 do {
     echo $i;
 } while ($i > 0);
-', ['statements' => ['do']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['do'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 if ($foo === false) {
     exit(0);
 } else {
     $bar = 9000;
     exit(1);
 }
-', ['statements' => ['exit']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['exit'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 a:
 
 if ($foo === false) {
@@ -97,117 +155,190 @@ if ($foo === false) {
     $bar = 9000;
     goto b;
 }
-', ['statements' => ['goto']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['goto'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 $a = 9000;
 if (true) {
     $foo = $bar;
 }
-', ['statements' => ['if']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['if'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 
 if (true) {
     $foo = $bar;
     return;
 }
-', ['statements' => ['return']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['return'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 $a = 9000;
 switch ($a) {
     case 42:
         break;
 }
-', ['statements' => ['switch']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['switch'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 if (null === $a) {
     $foo->bar();
-    throw new \\UnexpectedValueException("A cannot be null.");
+    throw new \UnexpectedValueException("A cannot be null.");
 }
-', ['statements' => ['throw']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['throw'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 $a = 9000;
 try {
     $foo->bar();
-} catch (\\Exception $exception) {
+} catch (\Exception $exception) {
     $a = -1;
 }
-', ['statements' => ['try']]), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+',
+                    [
+                        'statements' => ['try'],
+                    ]
+                ),
+                new CodeSample(
+                    '<?php
 
 if (true) {
     $foo = $bar;
     yield $foo;
 }
-', ['statements' => ['yield']])]);
+',
+                    [
+                        'statements' => ['yield'],
+                    ]
+                ),
+            ]
+        );
     }
+
     /**
      * {@inheritdoc}
      *
      * Must run after NoExtraBlankLinesFixer, NoUselessReturnFixer, ReturnAssignmentFixer.
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return -21;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
         return $tokens->isAnyTokenKindsFound($this->fixTokenMap);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
-        $analyzer = new \PhpCsFixer\Tokenizer\TokensAnalyzer($tokens);
+        $analyzer = new TokensAnalyzer($tokens);
+
         for ($index = $tokens->count() - 1; $index > 0; --$index) {
             $token = $tokens[$index];
+
             if (!$token->isGivenKind($this->fixTokenMap)) {
                 continue;
             }
-            if ($token->isGivenKind(\T_WHILE) && $analyzer->isWhilePartOfDoWhile($index)) {
+
+            if ($token->isGivenKind(T_WHILE) && $analyzer->isWhilePartOfDoWhile($index)) {
                 continue;
             }
+
             $prevNonWhitespace = $tokens->getPrevNonWhitespace($index);
+
             if ($this->shouldAddBlankLine($tokens, $prevNonWhitespace)) {
                 $this->insertBlankLine($tokens, $index);
             }
+
             $index = $prevNonWhitespace;
         }
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function createConfigurationDefinition() : \PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface
+    protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new \PhpCsFixer\FixerConfiguration\FixerConfigurationResolver([(new \PhpCsFixer\FixerConfiguration\FixerOptionBuilder('statements', 'List of statements which must be preceded by an empty line.'))->setAllowedTypes(['array'])->setAllowedValues([new \PhpCsFixer\FixerConfiguration\AllowedValueSubset(\array_keys(self::$tokenMap))])->setDefault(['break', 'continue', 'declare', 'return', 'throw', 'try'])->getOption()]);
+        return new FixerConfigurationResolver([
+            (new FixerOptionBuilder('statements', 'List of statements which must be preceded by an empty line.'))
+                ->setAllowedTypes(['array'])
+                ->setAllowedValues([new AllowedValueSubset(array_keys(self::$tokenMap))])
+                ->setDefault([
+                    'break',
+                    'continue',
+                    'declare',
+                    'return',
+                    'throw',
+                    'try',
+                ])
+                ->getOption(),
+        ]);
     }
-    private function shouldAddBlankLine(\PhpCsFixer\Tokenizer\Tokens $tokens, int $prevNonWhitespace) : bool
+
+    private function shouldAddBlankLine(Tokens $tokens, int $prevNonWhitespace): bool
     {
         $prevNonWhitespaceToken = $tokens[$prevNonWhitespace];
+
         if ($prevNonWhitespaceToken->isComment()) {
             for ($j = $prevNonWhitespace - 1; $j >= 0; --$j) {
-                if (\strpos($tokens[$j]->getContent(), "\n") !== \false) {
-                    return \false;
+                if (str_contains($tokens[$j]->getContent(), "\n")) {
+                    return false;
                 }
+
                 if ($tokens[$j]->isWhitespace() || $tokens[$j]->isComment()) {
                     continue;
                 }
+
                 return $tokens[$j]->equalsAny([';', '}']);
             }
         }
+
         return $prevNonWhitespaceToken->equalsAny([';', '}']);
     }
-    private function insertBlankLine(\PhpCsFixer\Tokenizer\Tokens $tokens, int $index) : void
+
+    private function insertBlankLine(Tokens $tokens, int $index): void
     {
         $prevIndex = $index - 1;
         $prevToken = $tokens[$prevIndex];
         $lineEnding = $this->whitespacesConfig->getLineEnding();
+
         if ($prevToken->isWhitespace()) {
-            $newlinesCount = \substr_count($prevToken->getContent(), "\n");
+            $newlinesCount = substr_count($prevToken->getContent(), "\n");
+
             if (0 === $newlinesCount) {
-                $tokens[$prevIndex] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, \rtrim($prevToken->getContent(), " \t") . $lineEnding . $lineEnding]);
+                $tokens[$prevIndex] = new Token([T_WHITESPACE, rtrim($prevToken->getContent(), " \t").$lineEnding.$lineEnding]);
             } elseif (1 === $newlinesCount) {
-                $tokens[$prevIndex] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, $lineEnding . $prevToken->getContent()]);
+                $tokens[$prevIndex] = new Token([T_WHITESPACE, $lineEnding.$prevToken->getContent()]);
             }
         } else {
-            $tokens->insertAt($index, new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, $lineEnding . $lineEnding]));
+            $tokens->insertAt($index, new Token([T_WHITESPACE, $lineEnding.$lineEnding]));
         }
     }
 }

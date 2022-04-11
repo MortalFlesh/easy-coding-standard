@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Error;
 
 /**
@@ -24,48 +26,53 @@ final class ErrorsManager
     /**
      * @var Error[]
      */
-    private $errors = [];
+    private array $errors = [];
+
     /**
      * Returns errors reported during linting before fixing.
      *
      * @return Error[]
      */
-    public function getInvalidErrors() : array
+    public function getInvalidErrors(): array
     {
-        return \array_filter($this->errors, static function (\PhpCsFixer\Error\Error $error) : bool {
-            return \PhpCsFixer\Error\Error::TYPE_INVALID === $error->getType();
+        return array_filter($this->errors, static function (Error $error): bool {
+            return Error::TYPE_INVALID === $error->getType();
         });
     }
+
     /**
      * Returns errors reported during fixing.
      *
      * @return Error[]
      */
-    public function getExceptionErrors() : array
+    public function getExceptionErrors(): array
     {
-        return \array_filter($this->errors, static function (\PhpCsFixer\Error\Error $error) : bool {
-            return \PhpCsFixer\Error\Error::TYPE_EXCEPTION === $error->getType();
+        return array_filter($this->errors, static function (Error $error): bool {
+            return Error::TYPE_EXCEPTION === $error->getType();
         });
     }
+
     /**
      * Returns errors reported during linting after fixing.
      *
      * @return Error[]
      */
-    public function getLintErrors() : array
+    public function getLintErrors(): array
     {
-        return \array_filter($this->errors, static function (\PhpCsFixer\Error\Error $error) : bool {
-            return \PhpCsFixer\Error\Error::TYPE_LINT === $error->getType();
+        return array_filter($this->errors, static function (Error $error): bool {
+            return Error::TYPE_LINT === $error->getType();
         });
     }
+
     /**
      * Returns true if no errors were reported.
      */
-    public function isEmpty() : bool
+    public function isEmpty(): bool
     {
         return empty($this->errors);
     }
-    public function report(\PhpCsFixer\Error\Error $error) : void
+
+    public function report(Error $error): void
     {
         $this->errors[] = $error;
     }

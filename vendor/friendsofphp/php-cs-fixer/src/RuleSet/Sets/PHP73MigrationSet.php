@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,16 +11,24 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\RuleSet\Sets;
 
 use PhpCsFixer\RuleSet\AbstractMigrationSetDescription;
+
 /**
  * @internal
  */
-final class PHP73MigrationSet extends \PhpCsFixer\RuleSet\AbstractMigrationSetDescription
+final class PHP73MigrationSet extends AbstractMigrationSetDescription
 {
-    public function getRules() : array
+    public function getRules(): array
     {
-        return ['@PHP71Migration' => \true, 'heredoc_indentation' => \true, 'method_argument_space' => ['after_heredoc' => \true], 'no_whitespace_before_comma_in_array' => ['after_heredoc' => \true], 'trailing_comma_in_multiline' => ['after_heredoc' => \true]];
+        return [
+            '@PHP71Migration' => true,
+            'heredoc_indentation' => true,
+            'method_argument_space' => ['after_heredoc' => true],
+            'no_whitespace_before_comma_in_array' => ['after_heredoc' => true],
+            'trailing_comma_in_multiline' => ['after_heredoc' => true],
+        ];
     }
 }

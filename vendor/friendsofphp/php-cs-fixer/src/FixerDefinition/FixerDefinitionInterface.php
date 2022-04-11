@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\FixerDefinition;
 
 /**
@@ -17,16 +19,19 @@ namespace PhpCsFixer\FixerDefinition;
  */
 interface FixerDefinitionInterface
 {
-    public function getSummary() : string;
-    public function getDescription() : ?string;
+    public function getSummary(): string;
+
+    public function getDescription(): ?string;
+
     /**
      * @return null|string null for non-risky fixer
      */
-    public function getRiskyDescription() : ?string;
+    public function getRiskyDescription(): ?string;
+
     /**
      * Array of samples, where single sample is [code, configuration].
      *
      * @return CodeSampleInterface[]
      */
-    public function getCodeSamples() : array;
+    public function getCodeSamples(): array;
 }

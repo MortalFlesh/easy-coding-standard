@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer;
 
 /**
@@ -23,11 +25,12 @@ final class CodeHasher
     {
         // cannot create instance of util. class
     }
+
     /**
      * Calculate hash for code.
      */
-    public static function calculateCodeHash(string $code) : string
+    public static function calculateCodeHash(string $code): string
     {
-        return (string) \crc32($code);
+        return (string) crc32($code);
     }
 }

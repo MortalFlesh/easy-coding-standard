@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,12 +11,14 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer;
 
 use PhpCsFixer\DocBlock\Annotation;
 use PhpCsFixer\DocBlock\DocBlock;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * This abstract fixer provides a base for fixers to fix types in PHPDoc.
  *
@@ -23,7 +26,7 @@ use PhpCsFixer\Tokenizer\Tokens;
  *
  * @internal
  */
-abstract class AbstractPhpdocTypesFixer extends \PhpCsFixer\AbstractFixer
+abstract class AbstractPhpdocTypesFixer extends AbstractFixer
 {
     /**
      * The annotation tags search inside.
@@ -31,45 +34,55 @@ abstract class AbstractPhpdocTypesFixer extends \PhpCsFixer\AbstractFixer
      * @var string[]
      */
     protected $tags;
+
     /**
      * {@inheritdoc}
      */
     public function __construct()
     {
         parent::__construct();
-        $this->tags = \PhpCsFixer\DocBlock\Annotation::getTagsWithTypes();
+
+        $this->tags = Annotation::getTagsWithTypes();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isTokenKindFound(\T_DOC_COMMENT);
+        return $tokens->isTokenKindFound(T_DOC_COMMENT);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         foreach ($tokens as $index => $token) {
-            if (!$token->isGivenKind(\T_DOC_COMMENT)) {
+            if (!$token->isGivenKind(T_DOC_COMMENT)) {
                 continue;
             }
-            $doc = new \PhpCsFixer\DocBlock\DocBlock($token->getContent());
+
+            $doc = new DocBlock($token->getContent());
             $annotations = $doc->getAnnotationsOfType($this->tags);
+
             if (0 === \count($annotations)) {
                 continue;
             }
+
             foreach ($annotations as $annotation) {
                 $this->fixTypes($annotation);
             }
-            $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_DOC_COMMENT, $doc->getContent()]);
+
+            $tokens[$index] = new Token([T_DOC_COMMENT, $doc->getContent()]);
         }
     }
+
     /**
      * Actually normalize the given type.
      */
-    protected abstract function normalize(string $type) : string;
+    abstract protected function normalize(string $type): string;
+
     /**
      * Fix the types at the given line.
      *
@@ -77,31 +90,39 @@ abstract class AbstractPhpdocTypesFixer extends \PhpCsFixer\AbstractFixer
      *
      * This will be nicely handled behind the scenes for us by the annotation class.
      */
-    private function fixTypes(\PhpCsFixer\DocBlock\Annotation $annotation) : void
+    private function fixTypes(Annotation $annotation): void
     {
         $types = $annotation->getTypes();
+
         $new = $this->normalizeTypes($types);
+
         if ($types !== $new) {
             $annotation->setTypes($new);
         }
     }
+
     /**
      * @param string[] $types
      *
      * @return string[]
      */
-    private function normalizeTypes(array $types) : array
+    private function normalizeTypes(array $types): array
     {
         foreach ($types as $index => $type) {
             $types[$index] = $this->normalizeType($type);
         }
+
         return $types;
     }
+
     /**
      * Prepare the type and normalize it.
      */
-    private function normalizeType(string $type) : string
+    private function normalizeType(string $type): string
     {
-        return \substr_compare($type, '[]', -\strlen('[]')) === 0 ? $this->normalizeType(\substr($type, 0, -2)) . '[]' : $this->normalize($type);
+        return str_ends_with($type, '[]')
+            ? $this->normalizeType(substr($type, 0, -2)).'[]'
+            : $this->normalize($type)
+        ;
     }
 }

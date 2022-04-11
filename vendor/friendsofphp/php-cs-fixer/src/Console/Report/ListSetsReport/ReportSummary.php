@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,9 +11,11 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Console\Report\ListSetsReport;
 
 use PhpCsFixer\RuleSet\RuleSetDescriptionInterface;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
@@ -23,7 +26,8 @@ final class ReportSummary
     /**
      * @var RuleSetDescriptionInterface[]
      */
-    private $sets;
+    private array $sets;
+
     /**
      * @param RuleSetDescriptionInterface[] $sets
      */
@@ -31,10 +35,11 @@ final class ReportSummary
     {
         $this->sets = $sets;
     }
+
     /**
      * @return RuleSetDescriptionInterface[]
      */
-    public function getSets() : array
+    public function getSets(): array
     {
         return $this->sets;
     }

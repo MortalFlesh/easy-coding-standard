@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,34 +11,39 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer;
 
 use PhpCsFixer\Utils;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
  * @internal
  */
-abstract class AbstractTransformer implements \PhpCsFixer\Tokenizer\TransformerInterface
+abstract class AbstractTransformer implements TransformerInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function getName() : string
+    public function getName(): string
     {
-        $nameParts = \explode('\\', static::class);
-        $name = \substr(\end($nameParts), 0, -\strlen('Transformer'));
-        return \PhpCsFixer\Utils::camelCaseToUnderscore($name);
+        $nameParts = explode('\\', static::class);
+        $name = substr(end($nameParts), 0, -\strlen('Transformer'));
+
+        return Utils::camelCaseToUnderscore($name);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 0;
     }
+
     /**
      * {@inheritdoc}
      */
-    public abstract function getCustomTokens() : array;
+    abstract public function getCustomTokens(): array;
 }

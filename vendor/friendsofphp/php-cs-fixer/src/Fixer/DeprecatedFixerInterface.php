@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,17 +11,18 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer;
 
 /**
  * @author Kuba Werłos <werlos@gmail.com>
  */
-interface DeprecatedFixerInterface extends \PhpCsFixer\Fixer\FixerInterface
+interface DeprecatedFixerInterface extends FixerInterface
 {
     /**
      * Returns names of fixers to use instead, if any.
      *
      * @return string[]
      */
-    public function getSuccessorsNames() : array;
+    public function getSuccessorsNames(): array;
 }

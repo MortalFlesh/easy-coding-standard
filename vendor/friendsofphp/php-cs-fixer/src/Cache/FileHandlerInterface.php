@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Cache;
 
 /**
@@ -19,7 +21,9 @@ namespace PhpCsFixer\Cache;
  */
 interface FileHandlerInterface
 {
-    public function getFile() : string;
-    public function read() : ?\PhpCsFixer\Cache\CacheInterface;
-    public function write(\PhpCsFixer\Cache\CacheInterface $cache) : void;
+    public function getFile(): string;
+
+    public function read(): ?CacheInterface;
+
+    public function write(CacheInterface $cache): void;
 }

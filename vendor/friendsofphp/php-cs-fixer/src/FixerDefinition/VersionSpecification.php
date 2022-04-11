@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,21 +11,24 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\FixerDefinition;
 
 /**
  * @author Andreas Möller <am@localheinz.com>
  */
-final class VersionSpecification implements \PhpCsFixer\FixerDefinition\VersionSpecificationInterface
+final class VersionSpecification implements VersionSpecificationInterface
 {
     /**
      * @var null|int
      */
     private $minimum;
+
     /**
      * @var null|int
      */
     private $maximum;
+
     /**
      * @throws \InvalidArgumentException
      */
@@ -33,31 +37,38 @@ final class VersionSpecification implements \PhpCsFixer\FixerDefinition\VersionS
         if (null === $minimum && null === $maximum) {
             throw new \InvalidArgumentException('Minimum or maximum need to be specified.');
         }
+
         if (null !== $minimum && 1 > $minimum) {
             throw new \InvalidArgumentException('Minimum needs to be either null or an integer greater than 0.');
         }
+
         if (null !== $maximum) {
             if (1 > $maximum) {
                 throw new \InvalidArgumentException('Maximum needs to be either null or an integer greater than 0.');
             }
+
             if (null !== $minimum && $maximum < $minimum) {
                 throw new \InvalidArgumentException('Maximum should not be lower than the minimum.');
             }
         }
+
         $this->minimum = $minimum;
         $this->maximum = $maximum;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isSatisfiedBy(int $version) : bool
+    public function isSatisfiedBy(int $version): bool
     {
         if (null !== $this->minimum && $version < $this->minimum) {
-            return \false;
+            return false;
         }
+
         if (null !== $this->maximum && $version > $this->maximum) {
-            return \false;
+            return false;
         }
-        return \true;
+
+        return true;
     }
 }

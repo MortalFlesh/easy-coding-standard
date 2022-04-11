@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,86 +11,100 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Console\SelfUpdate;
 
-use ECSPrefix20220403\Composer\Semver\Comparator;
-use ECSPrefix20220403\Composer\Semver\Semver;
-use ECSPrefix20220403\Composer\Semver\VersionParser;
+use Composer\Semver\Comparator;
+use Composer\Semver\Semver;
+use Composer\Semver\VersionParser;
+
 /**
  * @internal
  */
-final class NewVersionChecker implements \PhpCsFixer\Console\SelfUpdate\NewVersionCheckerInterface
+final class NewVersionChecker implements NewVersionCheckerInterface
 {
-    /**
-     * @var \PhpCsFixer\Console\SelfUpdate\GithubClientInterface
-     */
-    private $githubClient;
-    /**
-     * @var \Composer\Semver\VersionParser
-     */
-    private $versionParser;
+    private GithubClientInterface $githubClient;
+
+    private VersionParser $versionParser;
+
     /**
      * @var null|string[]
      */
     private $availableVersions;
-    public function __construct(\PhpCsFixer\Console\SelfUpdate\GithubClientInterface $githubClient)
+
+    public function __construct(GithubClientInterface $githubClient)
     {
         $this->githubClient = $githubClient;
-        $this->versionParser = new \ECSPrefix20220403\Composer\Semver\VersionParser();
+        $this->versionParser = new VersionParser();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getLatestVersion() : string
+    public function getLatestVersion(): string
     {
         $this->retrieveAvailableVersions();
+
         return $this->availableVersions[0];
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getLatestVersionOfMajor(int $majorVersion) : ?string
+    public function getLatestVersionOfMajor(int $majorVersion): ?string
     {
         $this->retrieveAvailableVersions();
-        $semverConstraint = '^' . $majorVersion;
+
+        $semverConstraint = '^'.$majorVersion;
+
         foreach ($this->availableVersions as $availableVersion) {
-            if (\ECSPrefix20220403\Composer\Semver\Semver::satisfies($availableVersion, $semverConstraint)) {
+            if (Semver::satisfies($availableVersion, $semverConstraint)) {
                 return $availableVersion;
             }
         }
+
         return null;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function compareVersions(string $versionA, string $versionB) : int
+    public function compareVersions(string $versionA, string $versionB): int
     {
         $versionA = $this->versionParser->normalize($versionA);
         $versionB = $this->versionParser->normalize($versionB);
-        if (\ECSPrefix20220403\Composer\Semver\Comparator::lessThan($versionA, $versionB)) {
+
+        if (Comparator::lessThan($versionA, $versionB)) {
             return -1;
         }
-        if (\ECSPrefix20220403\Composer\Semver\Comparator::greaterThan($versionA, $versionB)) {
+
+        if (Comparator::greaterThan($versionA, $versionB)) {
             return 1;
         }
+
         return 0;
     }
-    private function retrieveAvailableVersions() : void
+
+    private function retrieveAvailableVersions(): void
     {
         if (null !== $this->availableVersions) {
             return;
         }
+
         foreach ($this->githubClient->getTags() as $tag) {
             $version = $tag['name'];
+
             try {
                 $this->versionParser->normalize($version);
-                if ('stable' === \ECSPrefix20220403\Composer\Semver\VersionParser::parseStability($version)) {
+
+                if ('stable' === VersionParser::parseStability($version)) {
                     $this->availableVersions[] = $version;
                 }
             } catch (\UnexpectedValueException $exception) {
                 // not a valid version tag
             }
         }
-        $this->availableVersions = \ECSPrefix20220403\Composer\Semver\Semver::rsort($this->availableVersions);
+
+        $this->availableVersions = Semver::rsort($this->availableVersions);
     }
 }

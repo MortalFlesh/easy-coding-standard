@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer;
 
 /**
@@ -52,39 +54,48 @@ final class CT
     public const T_NAMED_ARGUMENT_COLON = 10033;
     public const T_FIRST_CLASS_CALLABLE = 10034;
     public const T_TYPE_INTERSECTION = 10035;
+
     private function __construct()
     {
     }
+
     /**
      * Get name for custom token.
      *
      * @param int $value custom token value
      */
-    public static function getName(int $value) : string
+    public static function getName(int $value): string
     {
         if (!self::has($value)) {
-            throw new \InvalidArgumentException(\sprintf('No custom token was found for "%s".', $value));
+            throw new \InvalidArgumentException(sprintf('No custom token was found for "%s".', $value));
         }
+
         $tokens = self::getMapById();
-        return 'CT::' . $tokens[$value];
+
+        return 'CT::'.$tokens[$value];
     }
+
     /**
      * Check if given custom token exists.
      *
      * @param int $value custom token value
      */
-    public static function has(int $value) : bool
+    public static function has(int $value): bool
     {
         $tokens = self::getMapById();
+
         return isset($tokens[$value]);
     }
-    private static function getMapById() : array
+
+    private static function getMapById(): array
     {
         static $constants;
+
         if (null === $constants) {
             $reflection = new \ReflectionClass(__CLASS__);
-            $constants = \array_flip($reflection->getConstants());
+            $constants = array_flip($reflection->getConstants());
         }
+
         return $constants;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,23 +11,24 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer\Analyzer\Analysis;
 
 /**
  * @internal
  */
-final class MatchAnalysis extends \PhpCsFixer\Tokenizer\Analyzer\Analysis\AbstractControlCaseStructuresAnalysis
+final class MatchAnalysis extends AbstractControlCaseStructuresAnalysis
 {
-    /**
-     * @var \PhpCsFixer\Tokenizer\Analyzer\Analysis\DefaultAnalysis|null
-     */
-    private $defaultAnalysis;
-    public function __construct(int $index, int $open, int $close, ?\PhpCsFixer\Tokenizer\Analyzer\Analysis\DefaultAnalysis $defaultAnalysis)
+    private ?DefaultAnalysis $defaultAnalysis;
+
+    public function __construct(int $index, int $open, int $close, ?DefaultAnalysis $defaultAnalysis)
     {
         parent::__construct($index, $open, $close);
+
         $this->defaultAnalysis = $defaultAnalysis;
     }
-    public function getDefaultAnalysis() : ?\PhpCsFixer\Tokenizer\Analyzer\Analysis\DefaultAnalysis
+
+    public function getDefaultAnalysis(): ?DefaultAnalysis
     {
         return $this->defaultAnalysis;
     }

@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\Casing;
 
 use PhpCsFixer\AbstractFixer;
@@ -19,64 +21,78 @@ use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
-final class NativeFunctionCasingFixer extends \PhpCsFixer\AbstractFixer
+
+final class NativeFunctionCasingFixer extends AbstractFixer
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Function defined by PHP should be called using the correct casing.', [new \PhpCsFixer\FixerDefinition\CodeSample("<?php\nSTRLEN(\$str);\n")]);
+        return new FixerDefinition(
+            'Function defined by PHP should be called using the correct casing.',
+            [new CodeSample("<?php\nSTRLEN(\$str);\n")]
+        );
     }
+
     /**
      * {@inheritdoc}
      *
      * Must run after FunctionToConstantFixer, NoUselessSprintfFixer, PowToExponentiationFixer.
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 0;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isTokenKindFound(\T_STRING);
+        return $tokens->isTokenKindFound(T_STRING);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
-        $functionsAnalyzer = new \PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer();
+        $functionsAnalyzer = new FunctionsAnalyzer();
+
         static $nativeFunctionNames = null;
+
         if (null === $nativeFunctionNames) {
             $nativeFunctionNames = $this->getNativeFunctionNames();
         }
+
         for ($index = 0, $count = $tokens->count(); $index < $count; ++$index) {
             // test if we are at a function all
             if (!$functionsAnalyzer->isGlobalFunctionCall($tokens, $index)) {
                 continue;
             }
+
             // test if the function call is to a native PHP function
-            $lower = \strtolower($tokens[$index]->getContent());
+            $lower = strtolower($tokens[$index]->getContent());
             if (!\array_key_exists($lower, $nativeFunctionNames)) {
                 continue;
             }
-            $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_STRING, $nativeFunctionNames[$lower]]);
+
+            $tokens[$index] = new Token([T_STRING, $nativeFunctionNames[$lower]]);
         }
     }
+
     /**
      * @return array<string, string>
      */
-    private function getNativeFunctionNames() : array
+    private function getNativeFunctionNames(): array
     {
-        $allFunctions = \get_defined_functions();
+        $allFunctions = get_defined_functions();
         $functions = [];
         foreach ($allFunctions['internal'] as $function) {
-            $functions[\strtolower($function)] = $function;
+            $functions[strtolower($function)] = $function;
         }
+
         return $functions;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,23 +11,27 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\RuleSet;
 
 /**
  * @internal
  */
-abstract class AbstractRuleSetDescription implements \PhpCsFixer\RuleSet\RuleSetDescriptionInterface
+abstract class AbstractRuleSetDescription implements RuleSetDescriptionInterface
 {
     public function __construct()
     {
     }
-    public function getName() : string
+
+    public function getName(): string
     {
-        $name = \substr(static::class, 1 + \strrpos(static::class, '\\'), -3);
-        return '@' . \str_replace('Risky', ':risky', $name);
+        $name = substr(static::class, 1 + strrpos(static::class, '\\'), -3);
+
+        return '@'.str_replace('Risky', ':risky', $name);
     }
-    public function isRisky() : bool
+
+    public function isRisky(): bool
     {
-        return \strpos(static::class, 'Risky') !== \false;
+        return str_contains(static::class, 'Risky');
     }
 }

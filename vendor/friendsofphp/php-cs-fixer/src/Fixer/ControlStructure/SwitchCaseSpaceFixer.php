@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\ControlStructure;
 
 use PhpCsFixer\AbstractFixer;
@@ -19,56 +21,72 @@ use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\SwitchAnalysis;
 use PhpCsFixer\Tokenizer\Analyzer\ControlCaseStructuresAnalyzer;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * Fixer for rules defined in PSR2 ¶5.2.
  *
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
  */
-final class SwitchCaseSpaceFixer extends \PhpCsFixer\AbstractFixer
+final class SwitchCaseSpaceFixer extends AbstractFixer
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Removes extra spaces between colon and case value.', [new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+        return new FixerDefinition(
+            'Removes extra spaces between colon and case value.',
+            [
+                new CodeSample(
+                    '<?php
     switch($a) {
         case 1   :
             break;
         default     :
             return 2;
     }
-')]);
+'
+                ),
+            ]
+        );
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isTokenKindFound(\T_SWITCH);
+        return $tokens->isTokenKindFound(T_SWITCH);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         /** @var SwitchAnalysis $analysis */
-        foreach (\PhpCsFixer\Tokenizer\Analyzer\ControlCaseStructuresAnalyzer::findControlStructures($tokens, [\T_SWITCH]) as $analysis) {
+        foreach (ControlCaseStructuresAnalyzer::findControlStructures($tokens, [T_SWITCH]) as $analysis) {
             $default = $analysis->getDefaultAnalysis();
+
             if (null !== $default) {
                 $index = $default->getIndex();
+
                 if (!$tokens[$index + 1]->isWhitespace() || !$tokens[$index + 2]->equalsAny([':', ';'])) {
                     continue;
                 }
+
                 $tokens->clearAt($index + 1);
             }
+
             foreach ($analysis->getCases() as $caseAnalysis) {
                 $colonIndex = $caseAnalysis->getColonIndex();
                 $valueIndex = $tokens->getPrevNonWhitespace($colonIndex);
+
                 // skip if there is no space between the colon and previous token or is space after comment
                 if ($valueIndex === $colonIndex - 1 || $tokens[$valueIndex]->isComment()) {
                     continue;
                 }
+
                 $tokens->clearAt($valueIndex + 1);
             }
         }

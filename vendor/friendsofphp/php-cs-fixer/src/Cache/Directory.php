@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Cache;
 
 /**
@@ -17,29 +19,34 @@ namespace PhpCsFixer\Cache;
  *
  * @internal
  */
-final class Directory implements \PhpCsFixer\Cache\DirectoryInterface
+final class Directory implements DirectoryInterface
 {
-    /**
-     * @var string
-     */
-    private $directoryName;
+    private string $directoryName;
+
     public function __construct(string $directoryName)
     {
         $this->directoryName = $directoryName;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getRelativePathTo(string $file) : string
+    public function getRelativePathTo(string $file): string
     {
         $file = $this->normalizePath($file);
-        if ('' === $this->directoryName || 0 !== \stripos($file, $this->directoryName . \DIRECTORY_SEPARATOR)) {
+
+        if (
+            '' === $this->directoryName
+            || 0 !== stripos($file, $this->directoryName.\DIRECTORY_SEPARATOR)
+        ) {
             return $file;
         }
-        return \substr($file, \strlen($this->directoryName) + 1);
+
+        return substr($file, \strlen($this->directoryName) + 1);
     }
-    private function normalizePath(string $path) : string
+
+    private function normalizePath(string $path): string
     {
-        return \str_replace(['\\', '/'], \DIRECTORY_SEPARATOR, $path);
+        return str_replace(['\\', '/'], \DIRECTORY_SEPARATOR, $path);
     }
 }

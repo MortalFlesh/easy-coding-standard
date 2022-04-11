@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\FixerConfiguration;
 
 /**
@@ -17,46 +19,47 @@ namespace PhpCsFixer\FixerConfiguration;
  *
  * @internal
  */
-final class AliasedFixerOption implements \PhpCsFixer\FixerConfiguration\FixerOptionInterface
+final class AliasedFixerOption implements FixerOptionInterface
 {
-    /**
-     * @var \PhpCsFixer\FixerConfiguration\FixerOptionInterface
-     */
-    private $fixerOption;
-    /**
-     * @var string
-     */
-    private $alias;
-    public function __construct(\PhpCsFixer\FixerConfiguration\FixerOptionInterface $fixerOption, string $alias)
+    private FixerOptionInterface $fixerOption;
+
+    private string $alias;
+
+    public function __construct(FixerOptionInterface $fixerOption, string $alias)
     {
         $this->fixerOption = $fixerOption;
         $this->alias = $alias;
     }
-    public function getAlias() : string
+
+    public function getAlias(): string
     {
         return $this->alias;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getName() : string
+    public function getName(): string
     {
         return $this->fixerOption->getName();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getDescription() : string
+    public function getDescription(): string
     {
         return $this->fixerOption->getDescription();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function hasDefault() : bool
+    public function hasDefault(): bool
     {
         return $this->fixerOption->hasDefault();
     }
+
     /**
      * {@inheritdoc}
      */
@@ -64,24 +67,27 @@ final class AliasedFixerOption implements \PhpCsFixer\FixerConfiguration\FixerOp
     {
         return $this->fixerOption->getDefault();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getAllowedTypes() : ?array
+    public function getAllowedTypes(): ?array
     {
         return $this->fixerOption->getAllowedTypes();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getAllowedValues() : ?array
+    public function getAllowedValues(): ?array
     {
         return $this->fixerOption->getAllowedValues();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getNormalizer() : ?\Closure
+    public function getNormalizer(): ?\Closure
     {
         return $this->fixerOption->getNormalizer();
     }

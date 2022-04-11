@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Console\Command;
 
 /**
@@ -17,26 +19,27 @@ namespace PhpCsFixer\Console\Command;
  */
 final class DescribeNameNotFoundException extends \InvalidArgumentException
 {
-    /**
-     * @var string
-     */
-    private $name;
+    private string $name;
+
     /**
      * 'rule'|'set'.
-     * @var string
      */
-    private $type;
+    private string $type;
+
     public function __construct(string $name, string $type)
     {
         $this->name = $name;
         $this->type = $type;
+
         parent::__construct();
     }
-    public function getName() : string
+
+    public function getName(): string
     {
         return $this->name;
     }
-    public function getType() : string
+
+    public function getType(): string
     {
         return $this->type;
     }

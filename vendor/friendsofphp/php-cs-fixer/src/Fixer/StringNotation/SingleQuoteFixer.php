@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\StringNotation;
 
 use PhpCsFixer\AbstractFixer;
@@ -23,70 +25,96 @@ use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * @author Gregor Harlan <gharlan@web.de>
  */
-final class SingleQuoteFixer extends \PhpCsFixer\AbstractFixer implements \PhpCsFixer\Fixer\ConfigurableFixerInterface
+final class SingleQuoteFixer extends AbstractFixer implements ConfigurableFixerInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
         $codeSample = <<<'EOF'
 <?php
-
-namespace ECSPrefix20220403;
 
 $a = "sample";
 $b = "sample with 'single-quotes'";
 
 EOF;
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Convert double quotes to single quotes for simple strings.', [new \PhpCsFixer\FixerDefinition\CodeSample($codeSample), new \PhpCsFixer\FixerDefinition\CodeSample($codeSample, ['strings_containing_single_quote_chars' => \true])]);
+
+        return new FixerDefinition(
+            'Convert double quotes to single quotes for simple strings.',
+            [
+                new CodeSample($codeSample),
+                new CodeSample(
+                    $codeSample,
+                    ['strings_containing_single_quote_chars' => true]
+                ),
+            ]
+        );
     }
+
     /**
      * {@inheritdoc}
      *
      * Must run after BacktickToShellExecFixer, EscapeImplicitBackslashesFixer.
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 0;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isTokenKindFound(\T_CONSTANT_ENCAPSED_STRING);
+        return $tokens->isTokenKindFound(T_CONSTANT_ENCAPSED_STRING);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         foreach ($tokens as $index => $token) {
-            if (!$token->isGivenKind(\T_CONSTANT_ENCAPSED_STRING)) {
+            if (!$token->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
                 continue;
             }
+
             $content = $token->getContent();
             $prefix = '';
-            if ('b' === \strtolower($content[0])) {
+
+            if ('b' === strtolower($content[0])) {
                 $prefix = $content[0];
-                $content = \substr($content, 1);
+                $content = substr($content, 1);
             }
-            if ('"' === $content[0] && (\true === $this->configuration['strings_containing_single_quote_chars'] || \strpos($content, "'") === \false) && !\PhpCsFixer\Preg::match('/(?<!\\\\)(?:\\\\{2})*\\\\(?!["$\\\\])/', $content)) {
-                $content = \substr($content, 1, -1);
-                $content = \str_replace(['\\"', '\\$', '\''], ['"', '$', '\\\''], $content);
-                $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_CONSTANT_ENCAPSED_STRING, $prefix . '\'' . $content . '\'']);
+
+            if (
+                '"' === $content[0]
+                && (true === $this->configuration['strings_containing_single_quote_chars'] || !str_contains($content, "'"))
+                // regex: odd number of backslashes, not followed by double quote or dollar
+                && !Preg::match('/(?<!\\\\)(?:\\\\{2})*\\\\(?!["$\\\\])/', $content)
+            ) {
+                $content = substr($content, 1, -1);
+                $content = str_replace(['\\"', '\\$', '\''], ['"', '$', '\\\''], $content);
+                $tokens[$index] = new Token([T_CONSTANT_ENCAPSED_STRING, $prefix.'\''.$content.'\'']);
             }
         }
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function createConfigurationDefinition() : \PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface
+    protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new \PhpCsFixer\FixerConfiguration\FixerConfigurationResolver([(new \PhpCsFixer\FixerConfiguration\FixerOptionBuilder('strings_containing_single_quote_chars', 'Whether to fix double-quoted strings that contains single-quotes.'))->setAllowedTypes(['bool'])->setDefault(\false)->getOption()]);
+        return new FixerConfigurationResolver([
+            (new FixerOptionBuilder('strings_containing_single_quote_chars', 'Whether to fix double-quoted strings that contains single-quotes.'))
+                ->setAllowedTypes(['bool'])
+                ->setDefault(false)
+                ->getOption(),
+        ]);
     }
 }

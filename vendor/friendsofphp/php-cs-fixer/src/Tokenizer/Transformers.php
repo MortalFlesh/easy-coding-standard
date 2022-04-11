@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,10 +11,12 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer;
 
-use ECSPrefix20220403\Symfony\Component\Finder\Finder;
-use ECSPrefix20220403\Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
+
 /**
  * Collection of Transformer classes.
  *
@@ -28,31 +31,37 @@ final class Transformers
      *
      * @var TransformerInterface[]
      */
-    private $items = [];
+    private array $items = [];
+
     /**
      * Register built in Transformers.
      */
     private function __construct()
     {
         $this->registerBuiltInTransformers();
-        \usort($this->items, static function (\PhpCsFixer\Tokenizer\TransformerInterface $a, \PhpCsFixer\Tokenizer\TransformerInterface $b) : int {
+
+        usort($this->items, static function (TransformerInterface $a, TransformerInterface $b): int {
             return $b->getPriority() <=> $a->getPriority();
         });
     }
-    public static function createSingleton() : self
+
+    public static function createSingleton(): self
     {
         static $instance = null;
+
         if (!$instance) {
             $instance = new self();
         }
+
         return $instance;
     }
+
     /**
      * Transform given Tokens collection through all Transformer classes.
      *
      * @param Tokens $tokens Tokens collection
      */
-    public function transform(\PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    public function transform(Tokens $tokens): void
     {
         foreach ($this->items as $transformer) {
             foreach ($tokens as $index => $token) {
@@ -60,36 +69,43 @@ final class Transformers
             }
         }
     }
+
     /**
      * @param TransformerInterface $transformer Transformer
      */
-    private function registerTransformer(\PhpCsFixer\Tokenizer\TransformerInterface $transformer) : void
+    private function registerTransformer(TransformerInterface $transformer): void
     {
         if (\PHP_VERSION_ID >= $transformer->getRequiredPhpVersionId()) {
             $this->items[] = $transformer;
         }
     }
-    private function registerBuiltInTransformers() : void
+
+    private function registerBuiltInTransformers(): void
     {
-        static $registered = \false;
+        static $registered = false;
+
         if ($registered) {
             return;
         }
-        $registered = \true;
+
+        $registered = true;
+
         foreach ($this->findBuiltInTransformers() as $transformer) {
             $this->registerTransformer($transformer);
         }
     }
+
     /**
      * @return \Generator|TransformerInterface[]
      */
-    private function findBuiltInTransformers() : iterable
+    private function findBuiltInTransformers(): iterable
     {
         /** @var SplFileInfo $file */
-        foreach (\ECSPrefix20220403\Symfony\Component\Finder\Finder::create()->files()->in(__DIR__ . '/Transformer') as $file) {
+        foreach (Finder::create()->files()->in(__DIR__.'/Transformer') as $file) {
             $relativeNamespace = $file->getRelativePath();
-            $class = __NAMESPACE__ . '\\Transformer\\' . ($relativeNamespace ? $relativeNamespace . '\\' : '') . $file->getBasename('.php');
-            (yield new $class());
+            $class = __NAMESPACE__.'\\Transformer\\'.($relativeNamespace ? $relativeNamespace.'\\' : '').$file->getBasename('.php');
+
+            yield new $class();
         }
     }
 }

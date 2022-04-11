@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\PhpUnit;
 
 use PhpCsFixer\DocBlock\Annotation;
@@ -28,30 +30,38 @@ use PhpCsFixer\Tokenizer\Analyzer\WhitespacesAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-final class PhpUnitNoExpectationAnnotationFixer extends \PhpCsFixer\Fixer\AbstractPhpUnitFixer implements \PhpCsFixer\Fixer\ConfigurableFixerInterface, \PhpCsFixer\Fixer\WhitespacesAwareFixerInterface
+final class PhpUnitNoExpectationAnnotationFixer extends AbstractPhpUnitFixer implements ConfigurableFixerInterface, WhitespacesAwareFixerInterface
 {
     /**
      * @var bool
      */
     private $fixMessageRegExp;
+
     /**
      * {@inheritdoc}
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         parent::configure($configuration);
-        $this->fixMessageRegExp = \PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::fulfills($this->configuration['target'], \PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::VERSION_4_3);
+
+        $this->fixMessageRegExp = PhpUnitTargetVersion::fulfills($this->configuration['target'], PhpUnitTargetVersion::VERSION_4_3);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Usages of `@expectedException*` annotations MUST be replaced by `->setExpectedException*` methods.', [new \PhpCsFixer\FixerDefinition\CodeSample('<?php
-final class MyTest extends \\PHPUnit_Framework_TestCase
+        return new FixerDefinition(
+            'Usages of `@expectedException*` annotations MUST be replaced by `->setExpectedException*` methods.',
+            [
+                new CodeSample(
+                    '<?php
+final class MyTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException FooException
@@ -63,8 +73,11 @@ final class MyTest extends \\PHPUnit_Framework_TestCase
         aaa();
     }
 }
-'), new \PhpCsFixer\FixerDefinition\CodeSample('<?php
-final class MyTest extends \\PHPUnit_Framework_TestCase
+'
+                ),
+                new CodeSample(
+                    '<?php
+final class MyTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException FooException
@@ -84,120 +97,179 @@ final class MyTest extends \\PHPUnit_Framework_TestCase
         ccc();
     }
 }
-', ['target' => \PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::VERSION_3_2])], null, 'Risky when PHPUnit classes are overridden or not accessible, or when project has PHPUnit incompatibilities.');
+',
+                    ['target' => PhpUnitTargetVersion::VERSION_3_2]
+                ),
+            ],
+            null,
+            'Risky when PHPUnit classes are overridden or not accessible, or when project has PHPUnit incompatibilities.'
+        );
     }
+
     /**
      * {@inheritdoc}
      *
      * Must run before NoEmptyPhpdocFixer, PhpUnitExpectationFixer.
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 10;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isRisky() : bool
+    public function isRisky(): bool
     {
-        return \true;
+        return true;
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function createConfigurationDefinition() : \PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface
+    protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new \PhpCsFixer\FixerConfiguration\FixerConfigurationResolver([(new \PhpCsFixer\FixerConfiguration\FixerOptionBuilder('target', 'Target version of PHPUnit.'))->setAllowedTypes(['string'])->setAllowedValues([\PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::VERSION_3_2, \PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::VERSION_4_3, \PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::VERSION_NEWEST])->setDefault(\PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion::VERSION_NEWEST)->getOption(), (new \PhpCsFixer\FixerConfiguration\FixerOptionBuilder('use_class_const', 'Use ::class notation.'))->setAllowedTypes(['bool'])->setDefault(\true)->getOption()]);
+        return new FixerConfigurationResolver([
+            (new FixerOptionBuilder('target', 'Target version of PHPUnit.'))
+                ->setAllowedTypes(['string'])
+                ->setAllowedValues([PhpUnitTargetVersion::VERSION_3_2, PhpUnitTargetVersion::VERSION_4_3, PhpUnitTargetVersion::VERSION_NEWEST])
+                ->setDefault(PhpUnitTargetVersion::VERSION_NEWEST)
+                ->getOption(),
+            (new FixerOptionBuilder('use_class_const', 'Use ::class notation.'))
+                ->setAllowedTypes(['bool'])
+                ->setDefault(true)
+                ->getOption(),
+        ]);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyPhpUnitClassFix(\PhpCsFixer\Tokenizer\Tokens $tokens, int $startIndex, int $endIndex) : void
+    protected function applyPhpUnitClassFix(Tokens $tokens, int $startIndex, int $endIndex): void
     {
-        $tokensAnalyzer = new \PhpCsFixer\Tokenizer\TokensAnalyzer($tokens);
+        $tokensAnalyzer = new TokensAnalyzer($tokens);
+
         for ($i = $endIndex - 1; $i > $startIndex; --$i) {
-            if (!$tokens[$i]->isGivenKind(\T_FUNCTION) || $tokensAnalyzer->isLambda($i)) {
+            if (!$tokens[$i]->isGivenKind(T_FUNCTION) || $tokensAnalyzer->isLambda($i)) {
                 continue;
             }
+
             $functionIndex = $i;
             $docBlockIndex = $i;
+
             // ignore abstract functions
             $braceIndex = $tokens->getNextTokenOfKind($functionIndex, [';', '{']);
             if (!$tokens[$braceIndex]->equals('{')) {
                 continue;
             }
+
             do {
                 $docBlockIndex = $tokens->getPrevNonWhitespace($docBlockIndex);
-            } while ($tokens[$docBlockIndex]->isGivenKind([\T_PUBLIC, \T_PROTECTED, \T_PRIVATE, \T_FINAL, \T_ABSTRACT, \T_COMMENT]));
-            if (!$tokens[$docBlockIndex]->isGivenKind(\T_DOC_COMMENT)) {
+            } while ($tokens[$docBlockIndex]->isGivenKind([T_PUBLIC, T_PROTECTED, T_PRIVATE, T_FINAL, T_ABSTRACT, T_COMMENT]));
+
+            if (!$tokens[$docBlockIndex]->isGivenKind(T_DOC_COMMENT)) {
                 continue;
             }
-            $doc = new \PhpCsFixer\DocBlock\DocBlock($tokens[$docBlockIndex]->getContent());
+
+            $doc = new DocBlock($tokens[$docBlockIndex]->getContent());
             $annotations = [];
-            foreach ($doc->getAnnotationsOfType(['expectedException', 'expectedExceptionCode', 'expectedExceptionMessage', 'expectedExceptionMessageRegExp']) as $annotation) {
+
+            foreach ($doc->getAnnotationsOfType([
+                'expectedException',
+                'expectedExceptionCode',
+                'expectedExceptionMessage',
+                'expectedExceptionMessageRegExp',
+            ]) as $annotation) {
                 $tag = $annotation->getTag()->getName();
                 $content = $this->extractContentFromAnnotation($annotation);
                 $annotations[$tag] = $content;
                 $annotation->remove();
             }
+
             if (!isset($annotations['expectedException'])) {
                 continue;
             }
             if (!$this->fixMessageRegExp && isset($annotations['expectedExceptionMessageRegExp'])) {
                 continue;
             }
-            $originalIndent = \PhpCsFixer\Tokenizer\Analyzer\WhitespacesAnalyzer::detectIndent($tokens, $docBlockIndex);
+
+            $originalIndent = WhitespacesAnalyzer::detectIndent($tokens, $docBlockIndex);
+
             $paramList = $this->annotationsToParamList($annotations);
-            $newMethodsCode = '<?php $this->' . (isset($annotations['expectedExceptionMessageRegExp']) ? 'setExpectedExceptionRegExp' : 'setExpectedException') . '(' . \implode(', ', $paramList) . ');';
-            $newMethods = \PhpCsFixer\Tokenizer\Tokens::fromCode($newMethodsCode);
-            $newMethods[0] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, $this->whitespacesConfig->getLineEnding() . $originalIndent . $this->whitespacesConfig->getIndent()]);
+
+            $newMethodsCode = '<?php $this->'
+                .(isset($annotations['expectedExceptionMessageRegExp']) ? 'setExpectedExceptionRegExp' : 'setExpectedException')
+                .'('
+                .implode(', ', $paramList)
+                .');';
+            $newMethods = Tokens::fromCode($newMethodsCode);
+            $newMethods[0] = new Token([
+                T_WHITESPACE,
+                $this->whitespacesConfig->getLineEnding().$originalIndent.$this->whitespacesConfig->getIndent(),
+            ]);
+
             // apply changes
             $docContent = $doc->getContent();
             if ('' === $docContent) {
                 $docContent = '/** */';
             }
-            $tokens[$docBlockIndex] = new \PhpCsFixer\Tokenizer\Token([\T_DOC_COMMENT, $docContent]);
+            $tokens[$docBlockIndex] = new Token([T_DOC_COMMENT, $docContent]);
             $tokens->insertAt($braceIndex + 1, $newMethods);
+
             $whitespaceIndex = $braceIndex + $newMethods->getSize() + 1;
-            $tokens[$whitespaceIndex] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, $this->whitespacesConfig->getLineEnding() . $tokens[$whitespaceIndex]->getContent()]);
+            $tokens[$whitespaceIndex] = new Token([
+                T_WHITESPACE,
+                $this->whitespacesConfig->getLineEnding().$tokens[$whitespaceIndex]->getContent(),
+            ]);
+
             $i = $docBlockIndex;
         }
     }
-    private function extractContentFromAnnotation(\PhpCsFixer\DocBlock\Annotation $annotation) : string
+
+    private function extractContentFromAnnotation(Annotation $annotation): string
     {
         $tag = $annotation->getTag()->getName();
-        if (1 !== \PhpCsFixer\Preg::match('/@' . $tag . '\\s+(.+)$/s', $annotation->getContent(), $matches)) {
+
+        if (1 !== Preg::match('/@'.$tag.'\s+(.+)$/s', $annotation->getContent(), $matches)) {
             return '';
         }
-        $content = \PhpCsFixer\Preg::replace('/\\*+\\/$/', '', $matches[1]);
-        if (\PhpCsFixer\Preg::match('/\\R/u', $content)) {
-            $content = \PhpCsFixer\Preg::replace('/\\s*\\R+\\s*\\*\\s*/u', ' ', $content);
+
+        $content = Preg::replace('/\*+\/$/', '', $matches[1]);
+
+        if (Preg::match('/\R/u', $content)) {
+            $content = Preg::replace('/\s*\R+\s*\*\s*/u', ' ', $content);
         }
-        return \rtrim($content);
+
+        return rtrim($content);
     }
-    private function annotationsToParamList(array $annotations) : array
+
+    private function annotationsToParamList(array $annotations): array
     {
         $params = [];
-        $exceptionClass = \ltrim($annotations['expectedException'], '\\');
-        if (\strpos($exceptionClass, '*') !== \false) {
-            $exceptionClass = \substr($exceptionClass, 0, \strpos($exceptionClass, '*'));
+        $exceptionClass = ltrim($annotations['expectedException'], '\\');
+        if (str_contains($exceptionClass, '*')) {
+            $exceptionClass = substr($exceptionClass, 0, strpos($exceptionClass, '*'));
         }
-        $exceptionClass = \trim($exceptionClass);
-        if (\true === $this->configuration['use_class_const']) {
+        $exceptionClass = trim($exceptionClass);
+
+        if (true === $this->configuration['use_class_const']) {
             $params[] = "\\{$exceptionClass}::class";
         } else {
             $params[] = "'{$exceptionClass}'";
         }
+
         if (isset($annotations['expectedExceptionMessage'])) {
-            $params[] = \var_export($annotations['expectedExceptionMessage'], \true);
+            $params[] = var_export($annotations['expectedExceptionMessage'], true);
         } elseif (isset($annotations['expectedExceptionMessageRegExp'])) {
-            $params[] = \var_export($annotations['expectedExceptionMessageRegExp'], \true);
+            $params[] = var_export($annotations['expectedExceptionMessageRegExp'], true);
         } elseif (isset($annotations['expectedExceptionCode'])) {
             $params[] = 'null';
         }
+
         if (isset($annotations['expectedExceptionCode'])) {
             $params[] = $annotations['expectedExceptionCode'];
         }
+
         return $params;
     }
 }

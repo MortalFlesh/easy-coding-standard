@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,9 +11,11 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\PhpUnit;
 
-use ECSPrefix20220403\Composer\Semver\Comparator;
+use Composer\Semver\Comparator;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
@@ -35,17 +38,21 @@ final class PhpUnitTargetVersion
     public const VERSION_7_5 = '7.5';
     public const VERSION_8_4 = '8.4';
     public const VERSION_NEWEST = 'newest';
+
     private function __construct()
     {
     }
-    public static function fulfills(string $candidate, string $target) : bool
+
+    public static function fulfills(string $candidate, string $target): bool
     {
         if (self::VERSION_NEWEST === $target) {
-            throw new \LogicException(\sprintf('Parameter `target` shall not be provided as "%s", determine proper target for tested PHPUnit feature instead.', self::VERSION_NEWEST));
+            throw new \LogicException(sprintf('Parameter `target` shall not be provided as "%s", determine proper target for tested PHPUnit feature instead.', self::VERSION_NEWEST));
         }
+
         if (self::VERSION_NEWEST === $candidate) {
-            return \true;
+            return true;
         }
-        return \ECSPrefix20220403\Composer\Semver\Comparator::greaterThanOrEqualTo($candidate, $target);
+
+        return Comparator::greaterThanOrEqualTo($candidate, $target);
     }
 }

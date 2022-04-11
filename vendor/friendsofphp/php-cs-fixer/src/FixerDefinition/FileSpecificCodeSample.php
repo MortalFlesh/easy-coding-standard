@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\FixerDefinition;
 
 /**
@@ -17,39 +19,41 @@ namespace PhpCsFixer\FixerDefinition;
  *
  * @internal
  */
-final class FileSpecificCodeSample implements \PhpCsFixer\FixerDefinition\FileSpecificCodeSampleInterface
+final class FileSpecificCodeSample implements FileSpecificCodeSampleInterface
 {
-    /**
-     * @var \PhpCsFixer\FixerDefinition\CodeSampleInterface
-     */
-    private $codeSample;
-    /**
-     * @var \SplFileInfo
-     */
-    private $splFileInfo;
-    public function __construct(string $code, \SplFileInfo $splFileInfo, ?array $configuration = null)
-    {
-        $this->codeSample = new \PhpCsFixer\FixerDefinition\CodeSample($code, $configuration);
+    private CodeSampleInterface $codeSample;
+
+    private \SplFileInfo $splFileInfo;
+
+    public function __construct(
+        string $code,
+        \SplFileInfo $splFileInfo,
+        ?array $configuration = null
+    ) {
+        $this->codeSample = new CodeSample($code, $configuration);
         $this->splFileInfo = $splFileInfo;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getCode() : string
+    public function getCode(): string
     {
         return $this->codeSample->getCode();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getConfiguration() : ?array
+    public function getConfiguration(): ?array
     {
         return $this->codeSample->getConfiguration();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getSplFileInfo() : \SplFileInfo
+    public function getSplFileInfo(): \SplFileInfo
     {
         return $this->splFileInfo;
     }

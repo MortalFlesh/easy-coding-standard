@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Differ;
 
 /**
@@ -20,5 +22,5 @@ interface DifferInterface
     /**
      * Create diff.
      */
-    public function diff(string $old, string $new, ?\SplFileInfo $file = null) : string;
+    public function diff(string $old, string $new, ?\SplFileInfo $file = null): string;
 }

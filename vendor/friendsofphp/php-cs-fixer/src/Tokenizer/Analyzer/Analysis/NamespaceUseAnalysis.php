@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,47 +11,48 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer\Analyzer\Analysis;
 
 /**
  * @internal
  */
-final class NamespaceUseAnalysis implements \PhpCsFixer\Tokenizer\Analyzer\Analysis\StartEndTokenAwareAnalysis
+final class NamespaceUseAnalysis implements StartEndTokenAwareAnalysis
 {
-    public const TYPE_CLASS = 1;
-    // "classy" could be class, interface or trait
+    public const TYPE_CLASS = 1; // "classy" could be class, interface or trait
     public const TYPE_FUNCTION = 2;
     public const TYPE_CONSTANT = 3;
+
     /**
      * The fully qualified use namespace.
-     * @var string
      */
-    private $fullName;
+    private string $fullName;
+
     /**
      * The short version of use namespace or the alias name in case of aliased use statements.
-     * @var string
      */
-    private $shortName;
+    private string $shortName;
+
     /**
      * Is the use statement being aliased?
-     * @var bool
      */
-    private $isAliased;
+    private bool $isAliased;
+
     /**
      * The start index of the namespace declaration in the analyzed Tokens.
-     * @var int
      */
-    private $startIndex;
+    private int $startIndex;
+
     /**
      * The end index of the namespace declaration in the analyzed Tokens.
-     * @var int
      */
-    private $endIndex;
+    private int $endIndex;
+
     /**
      * The type of import: class, function or constant.
-     * @var int
      */
-    private $type;
+    private int $type;
+
     public function __construct(string $fullName, string $shortName, bool $isAliased, int $startIndex, int $endIndex, int $type)
     {
         $this->fullName = $fullName;
@@ -60,39 +62,48 @@ final class NamespaceUseAnalysis implements \PhpCsFixer\Tokenizer\Analyzer\Analy
         $this->endIndex = $endIndex;
         $this->type = $type;
     }
-    public function getFullName() : string
+
+    public function getFullName(): string
     {
         return $this->fullName;
     }
-    public function getShortName() : string
+
+    public function getShortName(): string
     {
         return $this->shortName;
     }
-    public function isAliased() : bool
+
+    public function isAliased(): bool
     {
         return $this->isAliased;
     }
-    public function getStartIndex() : int
+
+    public function getStartIndex(): int
     {
         return $this->startIndex;
     }
-    public function getEndIndex() : int
+
+    public function getEndIndex(): int
     {
         return $this->endIndex;
     }
-    public function getType() : int
+
+    public function getType(): int
     {
         return $this->type;
     }
-    public function isClass() : bool
+
+    public function isClass(): bool
     {
         return self::TYPE_CLASS === $this->type;
     }
-    public function isFunction() : bool
+
+    public function isFunction(): bool
     {
         return self::TYPE_FUNCTION === $this->type;
     }
-    public function isConstant() : bool
+
+    public function isConstant(): bool
     {
         return self::TYPE_CONSTANT === $this->type;
     }

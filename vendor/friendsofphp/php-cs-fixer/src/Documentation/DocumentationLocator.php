@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,11 +11,13 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Documentation;
 
 use PhpCsFixer\Fixer\FixerInterface;
 use PhpCsFixer\Preg;
 use PhpCsFixer\Utils;
+
 /**
  * @internal
  */
@@ -24,42 +27,59 @@ final class DocumentationLocator
      * @var string
      */
     private $path;
+
     public function __construct()
     {
-        $this->path = \dirname(__DIR__, 2) . '/doc';
+        $this->path = \dirname(__DIR__, 2).'/doc';
     }
-    public function getFixersDocumentationDirectoryPath() : string
+
+    public function getFixersDocumentationDirectoryPath(): string
     {
-        return $this->path . '/rules';
+        return $this->path.'/rules';
     }
-    public function getFixersDocumentationIndexFilePath() : string
+
+    public function getFixersDocumentationIndexFilePath(): string
     {
-        return $this->getFixersDocumentationDirectoryPath() . '/index.rst';
+        return $this->getFixersDocumentationDirectoryPath().'/index.rst';
     }
-    public function getFixerDocumentationFilePath(\PhpCsFixer\Fixer\FixerInterface $fixer) : string
+
+    public function getFixerDocumentationFilePath(FixerInterface $fixer): string
     {
-        return $this->getFixersDocumentationDirectoryPath() . '/' . \PhpCsFixer\Preg::replaceCallback('/^.*\\\\(.+)\\\\(.+)Fixer$/', static function (array $matches) : string {
-            return \PhpCsFixer\Utils::camelCaseToUnderscore($matches[1]) . '/' . \PhpCsFixer\Utils::camelCaseToUnderscore($matches[2]);
-        }, \get_class($fixer)) . '.rst';
+        return $this->getFixersDocumentationDirectoryPath().'/'.Preg::replaceCallback(
+            '/^.*\\\\(.+)\\\\(.+)Fixer$/',
+            static function (array $matches): string {
+                return Utils::camelCaseToUnderscore($matches[1]).'/'.Utils::camelCaseToUnderscore($matches[2]);
+            },
+            \get_class($fixer)
+        ).'.rst';
     }
-    public function getFixerDocumentationFileRelativePath(\PhpCsFixer\Fixer\FixerInterface $fixer) : string
+
+    public function getFixerDocumentationFileRelativePath(FixerInterface $fixer): string
     {
-        return \PhpCsFixer\Preg::replace('#^' . \preg_quote($this->getFixersDocumentationDirectoryPath(), '#') . '/#', '', $this->getFixerDocumentationFilePath($fixer));
+        return Preg::replace(
+            '#^'.preg_quote($this->getFixersDocumentationDirectoryPath(), '#').'/#',
+            '',
+            $this->getFixerDocumentationFilePath($fixer)
+        );
     }
-    public function getRuleSetsDocumentationDirectoryPath() : string
+
+    public function getRuleSetsDocumentationDirectoryPath(): string
     {
-        return $this->path . '/ruleSets';
+        return $this->path.'/ruleSets';
     }
-    public function getRuleSetsDocumentationIndexFilePath() : string
+
+    public function getRuleSetsDocumentationIndexFilePath(): string
     {
-        return $this->getRuleSetsDocumentationDirectoryPath() . '/index.rst';
+        return $this->getRuleSetsDocumentationDirectoryPath().'/index.rst';
     }
-    public function getRuleSetsDocumentationFilePath(string $name) : string
+
+    public function getRuleSetsDocumentationFilePath(string $name): string
     {
-        return $this->getRuleSetsDocumentationDirectoryPath() . '/' . \str_replace(':risky', 'Risky', \ucfirst(\substr($name, 1))) . '.rst';
+        return $this->getRuleSetsDocumentationDirectoryPath().'/'.str_replace(':risky', 'Risky', ucfirst(substr($name, 1))).'.rst';
     }
-    public function getListingFilePath() : string
+
+    public function getListingFilePath(): string
     {
-        return $this->path . '/list.rst';
+        return $this->path.'/list.rst';
     }
 }

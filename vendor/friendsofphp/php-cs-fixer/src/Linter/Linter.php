@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Linter;
 
 /**
@@ -19,34 +21,35 @@ namespace PhpCsFixer\Linter;
  *
  * @internal
  */
-final class Linter implements \PhpCsFixer\Linter\LinterInterface
+final class Linter implements LinterInterface
 {
-    /**
-     * @var \PhpCsFixer\Linter\LinterInterface
-     */
-    private $subLinter;
+    private LinterInterface $subLinter;
+
     public function __construct()
     {
-        $this->subLinter = new \PhpCsFixer\Linter\TokenizerLinter();
+        $this->subLinter = new TokenizerLinter();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isAsync() : bool
+    public function isAsync(): bool
     {
         return $this->subLinter->isAsync();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function lintFile(string $path) : \PhpCsFixer\Linter\LintingResultInterface
+    public function lintFile(string $path): LintingResultInterface
     {
         return $this->subLinter->lintFile($path);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function lintSource(string $source) : \PhpCsFixer\Linter\LintingResultInterface
+    public function lintSource(string $source): LintingResultInterface
     {
         return $this->subLinter->lintSource($source);
     }

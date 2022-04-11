@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Console\SelfUpdate;
 
 /**
@@ -20,14 +22,16 @@ interface NewVersionCheckerInterface
     /**
      * Returns the tag of the latest version.
      */
-    public function getLatestVersion() : string;
+    public function getLatestVersion(): string;
+
     /**
      * Returns the tag of the latest minor/patch version of the given major version.
      */
-    public function getLatestVersionOfMajor(int $majorVersion) : ?string;
+    public function getLatestVersionOfMajor(int $majorVersion): ?string;
+
     /**
      * Returns -1, 0, or 1 if the first version is respectively less than,
      * equal to, or greater than the second.
      */
-    public function compareVersions(string $versionA, string $versionB) : int;
+    public function compareVersions(string $versionA, string $versionB): int;
 }

@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer;
 
 /**
@@ -31,7 +33,8 @@ interface TransformerInterface
      *
      * @return int[]
      */
-    public function getCustomTokens() : array;
+    public function getCustomTokens(): array;
+
     /**
      * Return the name of the transformer.
      *
@@ -39,13 +42,15 @@ interface TransformerInterface
      *
      * @return string The name of the fixer
      */
-    public function getName() : string;
+    public function getName(): string;
+
     /**
      * Returns the priority of the transformer.
      *
      * The default priority is 0 and higher priorities are executed first.
      */
-    public function getPriority() : int;
+    public function getPriority(): int;
+
     /**
      * Return minimal required PHP version id to transform the code.
      *
@@ -54,9 +59,10 @@ interface TransformerInterface
      * token kind, e.g. transforming `T_FUNCTION` in `<?php use function Foo\\bar;`
      * code.
      */
-    public function getRequiredPhpVersionId() : int;
+    public function getRequiredPhpVersionId(): int;
+
     /**
      * Process Token to transform it into custom token when needed.
      */
-    public function process(\PhpCsFixer\Tokenizer\Tokens $tokens, \PhpCsFixer\Tokenizer\Token $token, int $index) : void;
+    public function process(Tokens $tokens, Token $token, int $index): void;
 }

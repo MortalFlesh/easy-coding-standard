@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,18 +11,25 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer;
 
-use ECSPrefix20220403\Symfony\Component\Finder\Finder as BaseFinder;
+use Symfony\Component\Finder\Finder as BaseFinder;
+
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-class Finder extends \ECSPrefix20220403\Symfony\Component\Finder\Finder
+class Finder extends BaseFinder
 {
     public function __construct()
     {
         parent::__construct();
-        $this->files()->name('/\\.php$/')->exclude('vendor');
+
+        $this
+            ->files()
+            ->name('/\.php$/')
+            ->exclude('vendor')
+        ;
     }
 }

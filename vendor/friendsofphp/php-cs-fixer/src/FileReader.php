@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer;
 
 /**
@@ -27,31 +29,45 @@ final class FileReader
      * @var null|string
      */
     private $stdinContent;
-    public static function createSingleton() : self
+
+    public static function createSingleton(): self
     {
         static $instance = null;
+
         if (!$instance) {
             $instance = new self();
         }
+
         return $instance;
     }
-    public function read(string $filePath) : string
+
+    public function read(string $filePath): string
     {
         if ('php://stdin' === $filePath) {
             if (null === $this->stdinContent) {
                 $this->stdinContent = $this->readRaw($filePath);
             }
+
             return $this->stdinContent;
         }
+
         return $this->readRaw($filePath);
     }
-    private function readRaw(string $realPath) : string
+
+    private function readRaw(string $realPath): string
     {
-        $content = @\file_get_contents($realPath);
-        if (\false === $content) {
-            $error = \error_get_last();
-            throw new \RuntimeException(\sprintf('Failed to read content from "%s".%s', $realPath, $error ? ' ' . $error['message'] : ''));
+        $content = @file_get_contents($realPath);
+
+        if (false === $content) {
+            $error = error_get_last();
+
+            throw new \RuntimeException(sprintf(
+                'Failed to read content from "%s".%s',
+                $realPath,
+                $error ? ' '.$error['message'] : ''
+            ));
         }
+
         return $content;
     }
 }

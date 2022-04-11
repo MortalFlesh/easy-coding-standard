@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,10 +11,12 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer;
 
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  * @author Fabien Potencier <fabien@symfony.com>
@@ -29,24 +32,28 @@ interface FixerInterface
      * need a fixing, but when this method returns false then the Tokens collection
      * need no fixing for sure.
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool;
+    public function isCandidate(Tokens $tokens): bool;
+
     /**
      * Check if fixer is risky or not.
      *
      * Risky fixer could change code behavior!
      */
-    public function isRisky() : bool;
+    public function isRisky(): bool;
+
     /**
      * Fixes a file.
      *
      * @param \SplFileInfo $file   A \SplFileInfo instance
      * @param Tokens       $tokens Tokens collection
      */
-    public function fix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void;
+    public function fix(\SplFileInfo $file, Tokens $tokens): void;
+
     /**
      * Returns the definition of the fixer.
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+    public function getDefinition(): FixerDefinitionInterface;
+
     /**
      * Returns the name of the fixer.
      *
@@ -54,17 +61,19 @@ interface FixerInterface
      *
      * @return string The name of the fixer
      */
-    public function getName() : string;
+    public function getName(): string;
+
     /**
      * Returns the priority of the fixer.
      *
      * The default priority is 0 and higher priorities are executed first.
      */
-    public function getPriority() : int;
+    public function getPriority(): int;
+
     /**
      * Returns true if the file is supported by this fixer.
      *
      * @return bool true if the file is supported by this fixer, false otherwise
      */
-    public function supports(\SplFileInfo $file) : bool;
+    public function supports(\SplFileInfo $file): bool;
 }

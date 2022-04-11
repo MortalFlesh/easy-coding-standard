@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Cache;
 
 /**
@@ -19,10 +21,15 @@ namespace PhpCsFixer\Cache;
  */
 interface CacheInterface
 {
-    public function getSignature() : \PhpCsFixer\Cache\SignatureInterface;
-    public function has(string $file) : bool;
-    public function get(string $file) : ?int;
-    public function set(string $file, int $hash) : void;
-    public function clear(string $file) : void;
-    public function toJson() : string;
+    public function getSignature(): SignatureInterface;
+
+    public function has(string $file): bool;
+
+    public function get(string $file): ?int;
+
+    public function set(string $file, int $hash): void;
+
+    public function clear(string $file): void;
+
+    public function toJson(): string;
 }

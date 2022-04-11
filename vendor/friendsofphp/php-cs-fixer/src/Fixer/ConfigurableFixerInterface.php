@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,14 +11,16 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer;
 
 use PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface;
+
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-interface ConfigurableFixerInterface extends \PhpCsFixer\Fixer\FixerInterface
+interface ConfigurableFixerInterface extends FixerInterface
 {
     /**
      * Set configuration.
@@ -35,9 +38,10 @@ interface ConfigurableFixerInterface extends \PhpCsFixer\Fixer\FixerInterface
      *
      * @throws InvalidFixerConfigurationException
      */
-    public function configure(array $configuration) : void;
+    public function configure(array $configuration): void;
+
     /**
      * Defines the available configuration options of the fixer.
      */
-    public function getConfigurationDefinition() : \PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface;
+    public function getConfigurationDefinition(): FixerConfigurationResolverInterface;
 }

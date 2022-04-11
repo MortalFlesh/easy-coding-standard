@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\Operator;
 
 use PhpCsFixer\AbstractFixer;
@@ -18,46 +20,59 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * @author Haralan Dobrev <hkdobrev@gmail.com>
  */
-final class LogicalOperatorsFixer extends \PhpCsFixer\AbstractFixer
+final class LogicalOperatorsFixer extends AbstractFixer
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Use `&&` and `||` logical operators instead of `and` and `or`.', [new \PhpCsFixer\FixerDefinition\CodeSample('<?php
+        return new FixerDefinition(
+            'Use `&&` and `||` logical operators instead of `and` and `or`.',
+            [
+                new CodeSample(
+                    '<?php
 
 if ($a == "foo" and ($b == "bar" or $c == "baz")) {
 }
-')], null, 'Risky, because you must double-check if using and/or with lower precedence was intentional.');
+'
+                ),
+            ],
+            null,
+            'Risky, because you must double-check if using and/or with lower precedence was intentional.'
+        );
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isAnyTokenKindsFound([\T_LOGICAL_AND, \T_LOGICAL_OR]);
+        return $tokens->isAnyTokenKindsFound([T_LOGICAL_AND, T_LOGICAL_OR]);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isRisky() : bool
+    public function isRisky(): bool
     {
-        return \true;
+        return true;
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         foreach ($tokens as $index => $token) {
-            if ($token->isGivenKind(\T_LOGICAL_AND)) {
-                $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_BOOLEAN_AND, '&&']);
-            } elseif ($token->isGivenKind(\T_LOGICAL_OR)) {
-                $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_BOOLEAN_OR, '||']);
+            if ($token->isGivenKind(T_LOGICAL_AND)) {
+                $tokens[$index] = new Token([T_BOOLEAN_AND, '&&']);
+            } elseif ($token->isGivenKind(T_LOGICAL_OR)) {
+                $tokens[$index] = new Token([T_BOOLEAN_OR, '||']);
             }
         }
     }

@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Linter;
 
 /**
@@ -17,47 +19,53 @@ namespace PhpCsFixer\Linter;
  *
  * @internal
  */
-final class CachingLinter implements \PhpCsFixer\Linter\LinterInterface
+final class CachingLinter implements LinterInterface
 {
-    /**
-     * @var \PhpCsFixer\Linter\LinterInterface
-     */
-    private $sublinter;
+    private LinterInterface $sublinter;
+
     /**
      * @var array<int, LintingResultInterface>
      */
-    private $cache = [];
-    public function __construct(\PhpCsFixer\Linter\LinterInterface $linter)
+    private array $cache = [];
+
+    public function __construct(LinterInterface $linter)
     {
         $this->sublinter = $linter;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isAsync() : bool
+    public function isAsync(): bool
     {
         return $this->sublinter->isAsync();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function lintFile(string $path) : \PhpCsFixer\Linter\LintingResultInterface
+    public function lintFile(string $path): LintingResultInterface
     {
-        $checksum = \crc32(\file_get_contents($path));
+        $checksum = crc32(file_get_contents($path));
+
         if (!isset($this->cache[$checksum])) {
             $this->cache[$checksum] = $this->sublinter->lintFile($path);
         }
+
         return $this->cache[$checksum];
     }
+
     /**
      * {@inheritdoc}
      */
-    public function lintSource(string $source) : \PhpCsFixer\Linter\LintingResultInterface
+    public function lintSource(string $source): LintingResultInterface
     {
-        $checksum = \crc32($source);
+        $checksum = crc32($source);
+
         if (!isset($this->cache[$checksum])) {
             $this->cache[$checksum] = $this->sublinter->lintSource($source);
         }
+
         return $this->cache[$checksum];
     }
 }

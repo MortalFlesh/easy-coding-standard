@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Console\Report\FixReport;
 
 /**
@@ -19,36 +21,30 @@ namespace PhpCsFixer\Console\Report\FixReport;
  */
 final class ReportSummary
 {
-    /**
-     * @var mixed[]
-     */
-    private $changed;
-    /**
-     * @var int
-     */
-    private $time;
-    /**
-     * @var int
-     */
-    private $memory;
-    /**
-     * @var bool
-     */
-    private $addAppliedFixers;
-    /**
-     * @var bool
-     */
-    private $isDryRun;
-    /**
-     * @var bool
-     */
-    private $isDecoratedOutput;
+    private array $changed;
+
+    private int $time;
+
+    private int $memory;
+
+    private bool $addAppliedFixers;
+
+    private bool $isDryRun;
+
+    private bool $isDecoratedOutput;
+
     /**
      * @param int $time   duration in milliseconds
      * @param int $memory memory usage in bytes
      */
-    public function __construct(array $changed, int $time, int $memory, bool $addAppliedFixers, bool $isDryRun, bool $isDecoratedOutput)
-    {
+    public function __construct(
+        array $changed,
+        int $time,
+        int $memory,
+        bool $addAppliedFixers,
+        bool $isDryRun,
+        bool $isDecoratedOutput
+    ) {
         $this->changed = $changed;
         $this->time = $time;
         $this->memory = $memory;
@@ -56,27 +52,33 @@ final class ReportSummary
         $this->isDryRun = $isDryRun;
         $this->isDecoratedOutput = $isDecoratedOutput;
     }
-    public function isDecoratedOutput() : bool
+
+    public function isDecoratedOutput(): bool
     {
         return $this->isDecoratedOutput;
     }
-    public function isDryRun() : bool
+
+    public function isDryRun(): bool
     {
         return $this->isDryRun;
     }
-    public function getChanged() : array
+
+    public function getChanged(): array
     {
         return $this->changed;
     }
-    public function getMemory() : int
+
+    public function getMemory(): int
     {
         return $this->memory;
     }
-    public function getTime() : int
+
+    public function getTime(): int
     {
         return $this->time;
     }
-    public function shouldAddAppliedFixers() : bool
+
+    public function shouldAddAppliedFixers(): bool
     {
         return $this->addAppliedFixers;
     }

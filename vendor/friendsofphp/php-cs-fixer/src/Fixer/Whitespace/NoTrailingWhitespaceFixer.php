@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\Whitespace;
 
 use PhpCsFixer\AbstractFixer;
@@ -19,6 +21,7 @@ use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * Fixer for rules defined in PSR2 ¶2.3.
  *
@@ -27,62 +30,80 @@ use PhpCsFixer\Tokenizer\Tokens;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-final class NoTrailingWhitespaceFixer extends \PhpCsFixer\AbstractFixer
+final class NoTrailingWhitespaceFixer extends AbstractFixer
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Remove trailing whitespace at the end of non-blank lines.', [new \PhpCsFixer\FixerDefinition\CodeSample("<?php\n\$a = 1;     \n")]);
+        return new FixerDefinition(
+            'Remove trailing whitespace at the end of non-blank lines.',
+            [new CodeSample("<?php\n\$a = 1;     \n")]
+        );
     }
+
     /**
      * {@inheritdoc}
      *
      * Must run after CombineConsecutiveIssetsFixer, CombineConsecutiveUnsetsFixer, EmptyLoopBodyFixer, EmptyLoopConditionFixer, FunctionToConstantFixer, ModernizeStrposFixer, NoEmptyCommentFixer, NoEmptyPhpdocFixer, NoEmptyStatementFixer, NoUnneededControlParenthesesFixer, NoUselessElseFixer, StringLengthToEmptyFixer, TernaryToElvisOperatorFixer.
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 0;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return \true;
+        return true;
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         for ($index = \count($tokens) - 1; $index >= 0; --$index) {
             $token = $tokens[$index];
-            if ($token->isGivenKind(\T_OPEN_TAG) && $tokens->offsetExists($index + 1) && $tokens[$index + 1]->isWhitespace() && 1 === \PhpCsFixer\Preg::match('/(.*)\\h$/', $token->getContent(), $openTagMatches) && 1 === \PhpCsFixer\Preg::match('/^(\\R)(.*)$/s', $tokens[$index + 1]->getContent(), $whitespaceMatches)) {
-                $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([\T_OPEN_TAG, $openTagMatches[1] . $whitespaceMatches[1]]);
+            if (
+                $token->isGivenKind(T_OPEN_TAG)
+                && $tokens->offsetExists($index + 1)
+                && $tokens[$index + 1]->isWhitespace()
+                && 1 === Preg::match('/(.*)\h$/', $token->getContent(), $openTagMatches)
+                && 1 === Preg::match('/^(\R)(.*)$/s', $tokens[$index + 1]->getContent(), $whitespaceMatches)
+            ) {
+                $tokens[$index] = new Token([T_OPEN_TAG, $openTagMatches[1].$whitespaceMatches[1]]);
                 $tokens->ensureWhitespaceAtIndex($index + 1, 0, $whitespaceMatches[2]);
+
                 continue;
             }
+
             if (!$token->isWhitespace()) {
                 continue;
             }
-            $lines = \PhpCsFixer\Preg::split('/(\\R+)/', $token->getContent(), -1, \PREG_SPLIT_DELIM_CAPTURE);
+
+            $lines = Preg::split('/(\\R+)/', $token->getContent(), -1, PREG_SPLIT_DELIM_CAPTURE);
             $linesSize = \count($lines);
+
             // fix only multiline whitespaces or singleline whitespaces at the end of file
             if ($linesSize > 1 || !isset($tokens[$index + 1])) {
-                if (!$tokens[$index - 1]->isGivenKind(\T_OPEN_TAG) || 1 !== \PhpCsFixer\Preg::match('/(.*)\\R$/', $tokens[$index - 1]->getContent())) {
-                    $lines[0] = \rtrim($lines[0], " \t");
+                if (!$tokens[$index - 1]->isGivenKind(T_OPEN_TAG) || 1 !== Preg::match('/(.*)\R$/', $tokens[$index - 1]->getContent())) {
+                    $lines[0] = rtrim($lines[0], " \t");
                 }
+
                 for ($i = 1; $i < $linesSize; ++$i) {
-                    $trimmedLine = \rtrim($lines[$i], " \t");
+                    $trimmedLine = rtrim($lines[$i], " \t");
                     if ('' !== $trimmedLine) {
                         $lines[$i] = $trimmedLine;
                     }
                 }
-                $content = \implode('', $lines);
+
+                $content = implode('', $lines);
                 if ('' !== $content) {
-                    $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([$token->getId(), $content]);
+                    $tokens[$index] = new Token([$token->getId(), $content]);
                 } else {
                     $tokens->clearAt($index);
                 }

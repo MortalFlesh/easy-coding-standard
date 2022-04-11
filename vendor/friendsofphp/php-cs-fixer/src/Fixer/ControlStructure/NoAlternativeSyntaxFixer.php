@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\ControlStructure;
 
 use PhpCsFixer\AbstractFixer;
@@ -22,45 +24,66 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * @author Eddilbert Macharia <edd.cowan@gmail.com>
  */
-final class NoAlternativeSyntaxFixer extends \PhpCsFixer\AbstractFixer implements \PhpCsFixer\Fixer\ConfigurableFixerInterface
+final class NoAlternativeSyntaxFixer extends AbstractFixer implements ConfigurableFixerInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Replace control structure alternative syntax to use braces.', [new \PhpCsFixer\FixerDefinition\CodeSample("<?php\nif(true):echo 't';else:echo 'f';endif;\n"), new \PhpCsFixer\FixerDefinition\CodeSample("<?php if (\$condition): ?>\nLorem ipsum.\n<?php endif; ?>\n", ['fix_non_monolithic_code' => \true])]);
+        return new FixerDefinition(
+            'Replace control structure alternative syntax to use braces.',
+            [
+                new CodeSample(
+                    "<?php\nif(true):echo 't';else:echo 'f';endif;\n"
+                ),
+                new CodeSample(
+                    "<?php if (\$condition): ?>\nLorem ipsum.\n<?php endif; ?>\n",
+                    ['fix_non_monolithic_code' => true]
+                ),
+            ]
+        );
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->hasAlternativeSyntax() && (\true === $this->configuration['fix_non_monolithic_code'] || $tokens->isMonolithicPhp());
+        return $tokens->hasAlternativeSyntax() && (true === $this->configuration['fix_non_monolithic_code'] || $tokens->isMonolithicPhp());
     }
+
     /**
      * {@inheritdoc}
      *
      * Must run before BracesFixer, ElseifFixer, NoSuperfluousElseifFixer, NoUselessElseFixer, SwitchContinueToBreakFixer.
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 42;
     }
+
     /**
      * {@inheritDoc}
      */
-    protected function createConfigurationDefinition() : \PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface
+    protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new \PhpCsFixer\FixerConfiguration\FixerConfigurationResolver([(new \PhpCsFixer\FixerConfiguration\FixerOptionBuilder('fix_non_monolithic_code', 'Whether to also fix code with inline HTML.'))->setAllowedTypes(['bool'])->setDefault(\true)->getOption()]);
+        return new FixerConfigurationResolver([
+            (new FixerOptionBuilder('fix_non_monolithic_code', 'Whether to also fix code with inline HTML.'))
+                ->setAllowedTypes(['bool'])
+                ->setDefault(true) // @TODO change to "false" on next major 4.0
+                ->getOption(),
+        ]);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         for ($index = \count($tokens) - 1; 0 <= $index; --$index) {
             $token = $tokens[$index];
@@ -69,12 +92,18 @@ final class NoAlternativeSyntaxFixer extends \PhpCsFixer\AbstractFixer implement
             $this->fixOpenCloseControls($index, $token, $tokens);
         }
     }
-    private function findParenthesisEnd(\PhpCsFixer\Tokenizer\Tokens $tokens, int $structureTokenIndex) : int
+
+    private function findParenthesisEnd(Tokens $tokens, int $structureTokenIndex): int
     {
         $nextIndex = $tokens->getNextMeaningfulToken($structureTokenIndex);
         $nextToken = $tokens[$nextIndex];
-        return $nextToken->equals('(') ? $tokens->findBlockEnd(\PhpCsFixer\Tokenizer\Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $nextIndex) : $structureTokenIndex;
+
+        return $nextToken->equals('(')
+            ? $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $nextIndex)
+            : $structureTokenIndex // return if next token is not opening parenthesis
+        ;
     }
+
     /**
      * Handle both extremes of the control structures.
      * e.g. if(): or endif;.
@@ -83,37 +112,47 @@ final class NoAlternativeSyntaxFixer extends \PhpCsFixer\AbstractFixer implement
      * @param Token  $token  the token being processed
      * @param Tokens $tokens the collection of tokens
      */
-    private function fixOpenCloseControls(int $index, \PhpCsFixer\Tokenizer\Token $token, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    private function fixOpenCloseControls(int $index, Token $token, Tokens $tokens): void
     {
-        if ($token->isGivenKind([\T_IF, \T_FOREACH, \T_WHILE, \T_FOR, \T_SWITCH, \T_DECLARE])) {
+        if ($token->isGivenKind([T_IF, T_FOREACH, T_WHILE, T_FOR, T_SWITCH, T_DECLARE])) {
             $openIndex = $tokens->getNextTokenOfKind($index, ['(']);
-            $closeIndex = $tokens->findBlockEnd(\PhpCsFixer\Tokenizer\Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $openIndex);
+            $closeIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $openIndex);
             $afterParenthesisIndex = $tokens->getNextMeaningfulToken($closeIndex);
             $afterParenthesis = $tokens[$afterParenthesisIndex];
+
             if (!$afterParenthesis->equals(':')) {
                 return;
             }
+
             $items = [];
+
             if (!$tokens[$afterParenthesisIndex - 1]->isWhitespace()) {
-                $items[] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, ' ']);
+                $items[] = new Token([T_WHITESPACE, ' ']);
             }
-            $items[] = new \PhpCsFixer\Tokenizer\Token('{');
+
+            $items[] = new Token('{');
+
             if (!$tokens[$afterParenthesisIndex + 1]->isWhitespace()) {
-                $items[] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, ' ']);
+                $items[] = new Token([T_WHITESPACE, ' ']);
             }
+
             $tokens->clearAt($afterParenthesisIndex);
             $tokens->insertAt($afterParenthesisIndex, $items);
         }
-        if (!$token->isGivenKind([\T_ENDIF, \T_ENDFOREACH, \T_ENDWHILE, \T_ENDFOR, \T_ENDSWITCH, \T_ENDDECLARE])) {
+
+        if (!$token->isGivenKind([T_ENDIF, T_ENDFOREACH, T_ENDWHILE, T_ENDFOR, T_ENDSWITCH, T_ENDDECLARE])) {
             return;
         }
+
         $nextTokenIndex = $tokens->getNextMeaningfulToken($index);
         $nextToken = $tokens[$nextTokenIndex];
-        $tokens[$index] = new \PhpCsFixer\Tokenizer\Token('}');
+        $tokens[$index] = new Token('}');
+
         if ($nextToken->equals(';')) {
             $tokens->clearAt($nextTokenIndex);
         }
     }
+
     /**
      * Handle the else: cases.
      *
@@ -121,18 +160,22 @@ final class NoAlternativeSyntaxFixer extends \PhpCsFixer\AbstractFixer implement
      * @param Token  $token  the token being processed
      * @param Tokens $tokens the collection of tokens
      */
-    private function fixElse(int $index, \PhpCsFixer\Tokenizer\Token $token, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    private function fixElse(int $index, Token $token, Tokens $tokens): void
     {
-        if (!$token->isGivenKind(\T_ELSE)) {
+        if (!$token->isGivenKind(T_ELSE)) {
             return;
         }
+
         $tokenAfterElseIndex = $tokens->getNextMeaningfulToken($index);
         $tokenAfterElse = $tokens[$tokenAfterElseIndex];
+
         if (!$tokenAfterElse->equals(':')) {
             return;
         }
-        $this->addBraces($tokens, new \PhpCsFixer\Tokenizer\Token([\T_ELSE, 'else']), $index, $tokenAfterElseIndex);
+
+        $this->addBraces($tokens, new Token([T_ELSE, 'else']), $index, $tokenAfterElseIndex);
     }
+
     /**
      * Handle the elsif(): cases.
      *
@@ -140,19 +183,23 @@ final class NoAlternativeSyntaxFixer extends \PhpCsFixer\AbstractFixer implement
      * @param Token  $token  the token being processed
      * @param Tokens $tokens the collection of tokens
      */
-    private function fixElseif(int $index, \PhpCsFixer\Tokenizer\Token $token, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    private function fixElseif(int $index, Token $token, Tokens $tokens): void
     {
-        if (!$token->isGivenKind(\T_ELSEIF)) {
+        if (!$token->isGivenKind(T_ELSEIF)) {
             return;
         }
+
         $parenthesisEndIndex = $this->findParenthesisEnd($tokens, $index);
         $tokenAfterParenthesisIndex = $tokens->getNextMeaningfulToken($parenthesisEndIndex);
         $tokenAfterParenthesis = $tokens[$tokenAfterParenthesisIndex];
+
         if (!$tokenAfterParenthesis->equals(':')) {
             return;
         }
-        $this->addBraces($tokens, new \PhpCsFixer\Tokenizer\Token([\T_ELSEIF, 'elseif']), $index, $tokenAfterParenthesisIndex);
+
+        $this->addBraces($tokens, new Token([T_ELSEIF, 'elseif']), $index, $tokenAfterParenthesisIndex);
     }
+
     /**
      * Add opening and closing braces to the else: and elseif: cases.
      *
@@ -161,21 +208,37 @@ final class NoAlternativeSyntaxFixer extends \PhpCsFixer\AbstractFixer implement
      * @param int    $index      the current token index
      * @param int    $colonIndex the index of the colon
      */
-    private function addBraces(\PhpCsFixer\Tokenizer\Tokens $tokens, \PhpCsFixer\Tokenizer\Token $token, int $index, int $colonIndex) : void
+    private function addBraces(Tokens $tokens, Token $token, int $index, int $colonIndex): void
     {
-        $items = [new \PhpCsFixer\Tokenizer\Token('}'), new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, ' ']), $token];
+        $items = [
+            new Token('}'),
+            new Token([T_WHITESPACE, ' ']),
+            $token,
+        ];
+
         if (!$tokens[$index + 1]->isWhitespace()) {
-            $items[] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, ' ']);
+            $items[] = new Token([T_WHITESPACE, ' ']);
         }
+
         $tokens->clearAt($index);
-        $tokens->insertAt($index, $items);
+        $tokens->insertAt(
+            $index,
+            $items
+        );
+
         // increment the position of the colon by number of items inserted
         $colonIndex += \count($items);
-        $items = [new \PhpCsFixer\Tokenizer\Token('{')];
+
+        $items = [new Token('{')];
+
         if (!$tokens[$colonIndex + 1]->isWhitespace()) {
-            $items[] = new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, ' ']);
+            $items[] = new Token([T_WHITESPACE, ' ']);
         }
+
         $tokens->clearAt($colonIndex);
-        $tokens->insertAt($colonIndex, $items);
+        $tokens->insertAt(
+            $colonIndex,
+            $items
+        );
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,43 +11,44 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer\Analyzer\Analysis;
 
 /**
  * @internal
  */
-final class NamespaceAnalysis implements \PhpCsFixer\Tokenizer\Analyzer\Analysis\StartEndTokenAwareAnalysis
+final class NamespaceAnalysis implements StartEndTokenAwareAnalysis
 {
     /**
      * The fully qualified namespace name.
-     * @var string
      */
-    private $fullName;
+    private string $fullName;
+
     /**
      * The short version of the namespace.
-     * @var string
      */
-    private $shortName;
+    private string $shortName;
+
     /**
      * The start index of the namespace declaration in the analyzed Tokens.
-     * @var int
      */
-    private $startIndex;
+    private int $startIndex;
+
     /**
      * The end index of the namespace declaration in the analyzed Tokens.
-     * @var int
      */
-    private $endIndex;
+    private int $endIndex;
+
     /**
      * The start index of the scope of the namespace in the analyzed Tokens.
-     * @var int
      */
-    private $scopeStartIndex;
+    private int $scopeStartIndex;
+
     /**
      * The end index of the scope of the namespace in the analyzed Tokens.
-     * @var int
      */
-    private $scopeEndIndex;
+    private int $scopeEndIndex;
+
     public function __construct(string $fullName, string $shortName, int $startIndex, int $endIndex, int $scopeStartIndex, int $scopeEndIndex)
     {
         $this->fullName = $fullName;
@@ -56,31 +58,38 @@ final class NamespaceAnalysis implements \PhpCsFixer\Tokenizer\Analyzer\Analysis
         $this->scopeStartIndex = $scopeStartIndex;
         $this->scopeEndIndex = $scopeEndIndex;
     }
-    public function getFullName() : string
+
+    public function getFullName(): string
     {
         return $this->fullName;
     }
-    public function getShortName() : string
+
+    public function getShortName(): string
     {
         return $this->shortName;
     }
-    public function getStartIndex() : int
+
+    public function getStartIndex(): int
     {
         return $this->startIndex;
     }
-    public function getEndIndex() : int
+
+    public function getEndIndex(): int
     {
         return $this->endIndex;
     }
-    public function getScopeStartIndex() : int
+
+    public function getScopeStartIndex(): int
     {
         return $this->scopeStartIndex;
     }
-    public function getScopeEndIndex() : int
+
+    public function getScopeEndIndex(): int
     {
         return $this->scopeEndIndex;
     }
-    public function isGlobalNamespace() : bool
+
+    public function isGlobalNamespace(): bool
     {
         return '' === $this->getFullName();
     }

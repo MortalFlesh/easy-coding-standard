@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\FunctionNotation;
 
 use PhpCsFixer\AbstractFixer;
@@ -20,79 +22,106 @@ use PhpCsFixer\Tokenizer\Analyzer\ArgumentsAnalyzer;
 use PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * @author Kuba Werłos <werlos@gmail.com>
  */
-final class ImplodeCallFixer extends \PhpCsFixer\AbstractFixer
+final class ImplodeCallFixer extends AbstractFixer
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Function `implode` must be called with 2 arguments in the documented order.', [new \PhpCsFixer\FixerDefinition\CodeSample("<?php\nimplode(\$pieces, '');\n"), new \PhpCsFixer\FixerDefinition\CodeSample("<?php\nimplode(\$pieces);\n")], null, 'Risky when the function `implode` is overridden.');
+        return new FixerDefinition(
+            'Function `implode` must be called with 2 arguments in the documented order.',
+            [
+                new CodeSample("<?php\nimplode(\$pieces, '');\n"),
+                new CodeSample("<?php\nimplode(\$pieces);\n"),
+            ],
+            null,
+            'Risky when the function `implode` is overridden.'
+        );
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isRisky() : bool
+    public function isRisky(): bool
     {
-        return \true;
+        return true;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isTokenKindFound(\T_STRING);
+        return $tokens->isTokenKindFound(T_STRING);
     }
+
     /**
      * {@inheritdoc}
      *
      * Must run before MethodArgumentSpaceFixer.
      * Must run after NoAliasFunctionsFixer.
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 37;
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
-        $functionsAnalyzer = new \PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer();
+        $functionsAnalyzer = new FunctionsAnalyzer();
+
         for ($index = \count($tokens) - 1; $index > 0; --$index) {
-            if (!$tokens[$index]->equals([\T_STRING, 'implode'], \false)) {
+            if (!$tokens[$index]->equals([T_STRING, 'implode'], false)) {
                 continue;
             }
+
             if (!$functionsAnalyzer->isGlobalFunctionCall($tokens, $index)) {
                 continue;
             }
+
             $argumentsIndices = $this->getArgumentIndices($tokens, $index);
+
             if (1 === \count($argumentsIndices)) {
-                $firstArgumentIndex = \key($argumentsIndices);
-                $tokens->insertAt($firstArgumentIndex, [new \PhpCsFixer\Tokenizer\Token([\T_CONSTANT_ENCAPSED_STRING, "''"]), new \PhpCsFixer\Tokenizer\Token(','), new \PhpCsFixer\Tokenizer\Token([\T_WHITESPACE, ' '])]);
+                $firstArgumentIndex = key($argumentsIndices);
+                $tokens->insertAt($firstArgumentIndex, [
+                    new Token([T_CONSTANT_ENCAPSED_STRING, "''"]),
+                    new Token(','),
+                    new Token([T_WHITESPACE, ' ']),
+                ]);
+
                 continue;
             }
+
             if (2 === \count($argumentsIndices)) {
-                [$firstArgumentIndex, $secondArgumentIndex] = \array_keys($argumentsIndices);
+                [$firstArgumentIndex, $secondArgumentIndex] = array_keys($argumentsIndices);
+
                 // If the first argument is string we have nothing to do
-                if ($tokens[$firstArgumentIndex]->isGivenKind(\T_CONSTANT_ENCAPSED_STRING)) {
+                if ($tokens[$firstArgumentIndex]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
                     continue;
                 }
                 // If the second argument is not string we cannot make a swap
-                if (!$tokens[$secondArgumentIndex]->isGivenKind(\T_CONSTANT_ENCAPSED_STRING)) {
+                if (!$tokens[$secondArgumentIndex]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
                     continue;
                 }
+
                 // collect tokens from first argument
-                $firstArgumentEndIndex = $argumentsIndices[\key($argumentsIndices)];
+                $firstArgumentEndIndex = $argumentsIndices[key($argumentsIndices)];
                 $newSecondArgumentTokens = [];
-                for ($i = \key($argumentsIndices); $i <= $firstArgumentEndIndex; ++$i) {
+                for ($i = key($argumentsIndices); $i <= $firstArgumentEndIndex; ++$i) {
                     $newSecondArgumentTokens[] = clone $tokens[$i];
                     $tokens->clearAt($i);
                 }
+
                 $tokens->insertAt($firstArgumentIndex, clone $tokens[$secondArgumentIndex]);
+
                 // insert above increased the second argument index
                 ++$secondArgumentIndex;
                 $tokens->clearAt($secondArgumentIndex);
@@ -100,18 +129,23 @@ final class ImplodeCallFixer extends \PhpCsFixer\AbstractFixer
             }
         }
     }
+
     /**
      * @return array<int, int> In the format: startIndex => endIndex
      */
-    private function getArgumentIndices(\PhpCsFixer\Tokenizer\Tokens $tokens, int $functionNameIndex) : array
+    private function getArgumentIndices(Tokens $tokens, int $functionNameIndex): array
     {
-        $argumentsAnalyzer = new \PhpCsFixer\Tokenizer\Analyzer\ArgumentsAnalyzer();
+        $argumentsAnalyzer = new ArgumentsAnalyzer();
+
         $openParenthesis = $tokens->getNextTokenOfKind($functionNameIndex, ['(']);
-        $closeParenthesis = $tokens->findBlockEnd(\PhpCsFixer\Tokenizer\Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $openParenthesis);
+        $closeParenthesis = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $openParenthesis);
+
         $indices = [];
+
         foreach ($argumentsAnalyzer->getArguments($tokens, $openParenthesis, $closeParenthesis) as $startIndexCandidate => $endIndex) {
             $indices[$tokens->getNextMeaningfulToken($startIndexCandidate - 1)] = $tokens->getPrevMeaningfulToken($endIndex + 1);
         }
+
         return $indices;
     }
 }

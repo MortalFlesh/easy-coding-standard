@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\PhpTag;
 
 use PhpCsFixer\AbstractFixer;
@@ -18,44 +20,53 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * Fixer for rules defined in PSR2 ¶2.2.
  *
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-final class NoClosingTagFixer extends \PhpCsFixer\AbstractFixer
+final class NoClosingTagFixer extends AbstractFixer
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('The closing `?>` tag MUST be omitted from files containing only PHP.', [new \PhpCsFixer\FixerDefinition\CodeSample("<?php\nclass Sample\n{\n}\n?>\n")]);
+        return new FixerDefinition(
+            'The closing `?>` tag MUST be omitted from files containing only PHP.',
+            [new CodeSample("<?php\nclass Sample\n{\n}\n?>\n")]
+        );
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isTokenKindFound(\T_CLOSE_TAG);
+        return $tokens->isTokenKindFound(T_CLOSE_TAG);
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
-        if (\count($tokens) < 2 || !$tokens->isMonolithicPhp() || !$tokens->isTokenKindFound(\T_CLOSE_TAG)) {
+        if (\count($tokens) < 2 || !$tokens->isMonolithicPhp() || !$tokens->isTokenKindFound(T_CLOSE_TAG)) {
             return;
         }
-        $closeTags = $tokens->findGivenKind(\T_CLOSE_TAG);
-        $index = \key($closeTags);
+
+        $closeTags = $tokens->findGivenKind(T_CLOSE_TAG);
+        $index = key($closeTags);
+
         if (isset($tokens[$index - 1]) && $tokens[$index - 1]->isWhitespace()) {
             $tokens->clearAt($index - 1);
         }
         $tokens->clearAt($index);
+
         $prevIndex = $tokens->getPrevMeaningfulToken($index);
-        if (!$tokens[$prevIndex]->equalsAny([';', '}', [\T_OPEN_TAG]])) {
-            $tokens->insertAt($prevIndex + 1, new \PhpCsFixer\Tokenizer\Token(';'));
+        if (!$tokens[$prevIndex]->equalsAny([';', '}', [T_OPEN_TAG]])) {
+            $tokens->insertAt($prevIndex + 1, new Token(';'));
         }
     }
 }

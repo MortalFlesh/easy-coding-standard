@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,32 +11,42 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Tokenizer\Analyzer;
 
 use PhpCsFixer\Tokenizer\Tokens;
+
 /**
  * @internal
  */
 final class WhitespacesAnalyzer
 {
-    public static function detectIndent(\PhpCsFixer\Tokenizer\Tokens $tokens, int $index) : string
+    public static function detectIndent(Tokens $tokens, int $index): string
     {
-        while (\true) {
-            $whitespaceIndex = $tokens->getPrevTokenOfKind($index, [[\T_WHITESPACE]]);
+        while (true) {
+            $whitespaceIndex = $tokens->getPrevTokenOfKind($index, [[T_WHITESPACE]]);
+
             if (null === $whitespaceIndex) {
                 return '';
             }
+
             $whitespaceToken = $tokens[$whitespaceIndex];
-            if (\strpos($whitespaceToken->getContent(), "\n") !== \false) {
+
+            if (str_contains($whitespaceToken->getContent(), "\n")) {
                 break;
             }
+
             $prevToken = $tokens[$whitespaceIndex - 1];
-            if ($prevToken->isGivenKind([\T_OPEN_TAG, \T_COMMENT]) && "\n" === \substr($prevToken->getContent(), -1)) {
+
+            if ($prevToken->isGivenKind([T_OPEN_TAG, T_COMMENT]) && "\n" === substr($prevToken->getContent(), -1)) {
                 break;
             }
+
             $index = $whitespaceIndex;
         }
-        $explodedContent = \explode("\n", $whitespaceToken->getContent());
-        return \end($explodedContent);
+
+        $explodedContent = explode("\n", $whitespaceToken->getContent());
+
+        return end($explodedContent);
     }
 }

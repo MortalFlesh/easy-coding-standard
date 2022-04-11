@@ -1,6 +1,7 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -10,6 +11,7 @@ declare (strict_types=1);
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
+
 namespace PhpCsFixer\Fixer\CastNotation;
 
 use PhpCsFixer\AbstractFixer;
@@ -19,14 +21,19 @@ use PhpCsFixer\FixerDefinition\VersionSpecification;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSample;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
-final class LowercaseCastFixer extends \PhpCsFixer\AbstractFixer
+
+final class LowercaseCastFixer extends AbstractFixer
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefinition() : \PhpCsFixer\FixerDefinition\FixerDefinitionInterface
+    public function getDefinition(): FixerDefinitionInterface
     {
-        return new \PhpCsFixer\FixerDefinition\FixerDefinition('Cast should be written in lower case.', [new \PhpCsFixer\FixerDefinition\VersionSpecificCodeSample('<?php
+        return new FixerDefinition(
+            'Cast should be written in lower case.',
+            [
+                new VersionSpecificCodeSample(
+                    '<?php
     $a = (BOOLEAN) $b;
     $a = (BOOL) $b;
     $a = (INTEGER) $b;
@@ -40,7 +47,11 @@ final class LowercaseCastFixer extends \PhpCsFixer\AbstractFixer
     $a = (OBJect) $b;
     $a = (UNset) $b;
     $a = (Binary) $b;
-', new \PhpCsFixer\FixerDefinition\VersionSpecification(null, 70399)), new \PhpCsFixer\FixerDefinition\VersionSpecificCodeSample('<?php
+',
+                    new VersionSpecification(null, 70399)
+                ),
+                new VersionSpecificCodeSample(
+                    '<?php
     $a = (BOOLEAN) $b;
     $a = (BOOL) $b;
     $a = (INTEGER) $b;
@@ -53,25 +64,32 @@ final class LowercaseCastFixer extends \PhpCsFixer\AbstractFixer
     $a = (OBJect) $b;
     $a = (UNset) $b;
     $a = (Binary) $b;
-', new \PhpCsFixer\FixerDefinition\VersionSpecification(70400))]);
+',
+                    new VersionSpecification(70400)
+                ),
+            ]
+        );
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(\PhpCsFixer\Tokenizer\Tokens $tokens) : bool
+    public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isAnyTokenKindsFound(\PhpCsFixer\Tokenizer\Token::getCastTokenKinds());
+        return $tokens->isAnyTokenKindsFound(Token::getCastTokenKinds());
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, \PhpCsFixer\Tokenizer\Tokens $tokens) : void
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         for ($index = 0, $count = $tokens->count(); $index < $count; ++$index) {
             if (!$tokens[$index]->isCast()) {
                 continue;
             }
-            $tokens[$index] = new \PhpCsFixer\Tokenizer\Token([$tokens[$index]->getId(), \strtolower($tokens[$index]->getContent())]);
+
+            $tokens[$index] = new Token([$tokens[$index]->getId(), strtolower($tokens[$index]->getContent())]);
         }
     }
 }
